@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="78930ca4-4cfb-482c-9b32-3ad129898984" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SciFlowTesting.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/out/production/SciFlowTesting/quorumTesting/NodeFactory.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/out/production/SciFlowTesting/quorumTesting/network$Node.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/out/production/SciFlowTesting/quorumTesting/network.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/out/production/SciFlowTesting/quorumTesting/quorumcalc.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/out/production/SciFlowTesting/workflowGen/gentask.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/out/production/SciFlowTesting/workflowGen/randomizeGen.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/out/production/SciFlowTesting/workflowGen/task.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/out/production/SciFlowTesting/workflowGen/workflow.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/output/data.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/quorumTesting/NodeFactory.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/quorumTesting/network.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/quorumTesting/quorumcalc.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/workflowGen/gentask.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/workflowGen/randomizeGen.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/workflowGen/task.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/workflowGen/workflow.java" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2BXTyTdH2cWCnBN8J0VxF1FLft2" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\hamil\IdeaProjects\SciFlowTesting\src" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Application.WorkflowDriver">
+    <configuration name="Driver" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="quorumTesting.NodeFactory" />
+      <module name="SciFlowTesting" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="WorkflowDriver" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="workflowGen.randomizeGen" />
+      <module name="SciFlowTesting" />
+      <option name="PROGRAM_PARAMETERS" value="hello" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="opencsv-5.6.jar" type="JarApplication" temporary="true">
+      <option name="JAR_PATH" value="$PROJECT_DIR$/lib/opencsv-5.6.jar" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+      <method v="2">
+        <option name="RunConfigurationTask" enabled="true" run_configuration_name="Driver" run_configuration_type="Application" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="Application.Driver" />
+      <item itemvalue="Application.WorkflowDriver" />
+      <item itemvalue="JAR Application.opencsv-5.6.jar" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="JAR Application.opencsv-5.6.jar" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="78930ca4-4cfb-482c-9b32-3ad129898984" name="Changes" comment="" />
+      <created>1657051686594</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1657051686594</updated>
+    </task>
+    <servers />
+  </component>
+</project>
