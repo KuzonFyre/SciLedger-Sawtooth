@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/sawtooth-sdk-java.iml" filepath="$PROJECT_DIR$/sawtooth-sdk-java.iml" />
+      <module fileurl="file://$PROJECT_DIR$/sawtooth-sdk-protos/sawtooth-sdk-protos.iml" filepath="$PROJECT_DIR$/sawtooth-sdk-protos/sawtooth-sdk-protos.iml" />
+      <module fileurl="file://$PROJECT_DIR$/sawtooth-sdk-signing/sawtooth-sdk-signing.iml" filepath="$PROJECT_DIR$/sawtooth-sdk-signing/sawtooth-sdk-signing.iml" />
+      <module fileurl="file://$PROJECT_DIR$/sawtooth-sdk-transaction-processor/sawtooth-sdk-transaction-processor.iml" filepath="$PROJECT_DIR$/sawtooth-sdk-transaction-processor/sawtooth-sdk-transaction-processor.iml" />
+    </modules>
+  </component>
+</project>

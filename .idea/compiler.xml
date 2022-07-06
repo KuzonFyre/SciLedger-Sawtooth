@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="sawtooth-sdk-signing" />
+        <module name="sawtooth-sdk-transaction-processor" />
+        <module name="sawtooth-sdk-protos" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="sawtooth-sdk-java" target="11" />
+      <module name="sawtooth-sdk-protos" target="11" />
+      <module name="sawtooth-sdk-signing" target="11" />
+      <module name="sawtooth-sdk-transaction-processor" target="11" />
+    </bytecodeTargetLevel>
+  </component>
+</project>
