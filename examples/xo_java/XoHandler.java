@@ -37,28 +37,35 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.logging.Logger;
 
+//Ensure design from payload is int
+// dont check valid action twice
+//Check payload inputs when uppacking transaction?
+//Apply genesis - how to check that workflow id has not been used
+//Additional checks in apply to ensure that task is allowed to be done (i.e. correct order of dependencies)
+//How to handle invalidating dependencies?
+
 public class XoHandler implements TransactionHandler {
 
   private final Logger logger = Logger.getLogger(XoHandler.class.getName());
-  private String xoNameSpace;
+  private String taskNameSpace;
 
   /**
    * constructor.
    */
   public XoHandler() {
-  
+
     try {
-      this.xoNameSpace = Utils.hash512(
-        this.transactionFamilyName().getBytes("UTF-8")).substring(0, 6);
+      this.taskNameSpace = Utils.hash512(
+              this.transactionFamilyName().getBytes("UTF-8")).substring(0, 6);
     } catch (UnsupportedEncodingException usee) {
       usee.printStackTrace();
-      this.xoNameSpace = "";
+      this.taskNameSpace = "";
     }
   }
 
   @Override
   public String transactionFamilyName() {
-    return "xo";
+    return "task";
   }
 
   @Override
@@ -69,176 +76,227 @@ public class XoHandler implements TransactionHandler {
   @Override
   public Collection<String> getNameSpaces() {
     ArrayList<String> namespaces = new ArrayList<>();
-    namespaces.add(this.xoNameSpace);
+    namespaces.add(this.taskNameSpace);
     return namespaces;
   }
 
+  //Actions: Invalidate, add regular task, create genesis block
   class TransactionData {
-    final String gameName;
+    final String taskId;
+    String parentWorkflowId;
+    final String parentTaskId;
+    final String workflowId;
     final String action;
-    final String space;
+    final String validRoot;
+    final String invalidRoot;
+    final String design;
+    final long timestamp;
 
-    TransactionData(String gameName, String action, String space) {
-      this.gameName = gameName;
+    TransactionData(String taskID, String parentWorkflowId, String parentTaskId, String workflowId, String action, String validRoot, String invalidRoot, String design, long timestamp) {
+      this.taskId = taskID;
+      this.parentWorkflowId = parentWorkflowId;
+      this.parentTaskId = parentTaskId;
+      this.workflowId = workflowId;
       this.action = action;
-      this.space = space;
+      this.validRoot = validRoot;
+      this.invalidRoot = invalidRoot;
+      this.design = design;
+      this.timestamp = timestamp;
+
     }
   }
 
-  class GameData {
-    final String gameName;
-    final String board;
-    final String state;
-    final String playerOne;
-    final String playerTwo;
+  class WorkflowData {
+    final String workflowId;
+    final String parentWorkflowId;
+    final String parentTaskId;
+    final String design;
 
-    GameData(String gameName, String board, String state, String playerOne, String playerTwo) {
-      this.gameName = gameName;
-      this.board = board;
-      this.state = state;
-      this.playerOne = playerOne;
-      this.playerTwo = playerTwo;
+    WorkflowData(String workflowId, String parentWorkflowId, String parentTaskId, String design) {
+      this.workflowId = workflowId;
+      this.parentWorkflowId = parentWorkflowId;
+      this.parentTaskId = parentTaskId;
+      this.design = design;
     }
   }
 
   @Override
   public void apply(TpProcessRequest transactionRequest, Context context)
-      throws InvalidTransactionException, InternalError {
+          throws InvalidTransactionException, InternalError {
+    // Call getUnpackedTransaction to unpack the transaction request to get transaction data
     TransactionData transactionData = getUnpackedTransaction(transactionRequest);
 
-    // The transaction signer is the player
-    String player;
+    // *** The transaction signer is the scientist who created a workflow or invalidated/added a task
+    String scientist;
+    //Get the header from the transaction request
     TransactionHeader header = transactionRequest.getHeader();
-    player = header.getSignerPublicKey();
-    int space = 0;
-    try {
-      space = Integer.parseInt(transactionData.space);
-    } catch (NumberFormatException e) {
-      if (transactionData.action.equals("take")) {
-        throw new InvalidTransactionException("Space could not be converted to an integer.");
-      }
-      if (transactionData.action.equals("create")) {
-        throw new InvalidTransactionException("Dimensions could not be converted to an integer. "
-         + transactionData.space);
-      }
+    //Extract the signer public key. This signer is the scientist.
+    scientist = header.getSignerPublicKey();
+
+    if(transactionData.taskId.equals("")){
+      throw new InvalidTransactionException("Task ID required");
     }
-    if (transactionData.gameName.equals("")) {
-      throw new InvalidTransactionException("Name is required");
+    if(transactionData.parentTaskId.equals("")){
+      throw new InvalidTransactionException("Parent task ID required");
     }
-    if (transactionData.gameName.contains("|")) {
-      throw new InvalidTransactionException("Game name cannot contain '|'");
+    if(transactionData.workflowId.equals("")){
+      throw new InvalidTransactionException("Workflow ID required");
     }
-    if (transactionData.action.equals("")) {
-      throw new InvalidTransactionException("Action is required");
+    if(transactionData.action.equals("")){
+      throw new InvalidTransactionException("Transaction action required");
     }
-    if (transactionData.action.equals("create")) {
-      if (space < 1 || space > 12) {
-        throw new InvalidTransactionException(
-          String.format(
-          "Invalid dimension:  Should be between 1 and 12: %s", transactionData.space
-          ));
+    //! did not include timestamp
+    //! did not include no | allowed
+
+    //! fill in checks for each type of transaction
+    if (transactionData.action.equals("genesis")){
+      if(transactionData.parentWorkflowId.equals("")){
+        throw new InvalidTransactionException("Parent workflow ID required");
       }
     }
-    if (!transactionData.action.equals("take") && !transactionData.action.equals("create")) {
+    else if(transactionData.action.equals("regular") || transactionData.action.equals("invalidation")){
+      if(transactionData.validRoot.equals("")){
+        throw new InvalidTransactionException("Valid merkle root required");
+      }
+      if(transactionData.invalidRoot.equals("")){
+        throw new InvalidTransactionException("Invalid merkle root required");
+      }
+    }
+    else{
       throw new InvalidTransactionException(
-          String.format("Invalid action: %s", transactionData.action));
+              String.format("Invalid transaction action type: %s", transactionData.action));
     }
 
-    String address = makeGameAddress(transactionData.gameName);
-    // context.get() returns a list.
-    // If no data has been stored yet at the given address, it will be empty.
+    //Otherwise make an address using the given taskID
+    String address = makeTaskAddress(transactionData.taskId);
+    // *** context.get() returns a list.
+    // *** If no data has been stored yet at the given address, it will be empty.
     String stateEntry = context.getState(
-        Collections.singletonList(address)
+            Collections.singletonList(address)
     ).get(address).toStringUtf8();
-    GameData stateData = getStateData(stateEntry, transactionData.gameName);
-    
-    GameData updatedGameData = playXo(transactionData, stateData, player);
-    storeGameData(address, updatedGameData, stateEntry, context);
+    WorkflowData stateData = getStateData(stateEntry, transactionData.workflowId);
+    //Call storeWorkflowData
+    WorkflowData updatedWorkflowData = initiateAction(transactionData, stateData, scientist);
+    storeWorkflowData(address, updatedWorkflowData, stateEntry, context);
   }
 
   /**
-   * Helper function to retrieve game gameName, action, and space from transaction request.
+   * Helper function to retrieve workflow workflowID, action, and taskID from transaction request.
    */
   private TransactionData getUnpackedTransaction(TpProcessRequest transactionRequest)
-      throws InvalidTransactionException {
+          throws InvalidTransactionException {
     String payload =  transactionRequest.getPayload().toStringUtf8();
     ArrayList<String> payloadList = new ArrayList<>(Arrays.asList(payload.split(",")));
-    if (payloadList.size() > 3) {
+    //If payload has more than 7 things, throw exception
+    if (payloadList.size() > 7) {
       throw new InvalidTransactionException("Invalid payload serialization");
     }
-    while (payloadList.size() < 3) {
+    //Add empty string to payload list until it has 7 things
+    while (payloadList.size() < 7) {
       payloadList.add("");
     }
-    return new TransactionData(payloadList.get(0), payloadList.get(1), payloadList.get(2));
+    if(payloadList.get(4).equals("genesis")){
+      int design;
+      //Create a transaction data object with the 7 items from the payload and return it
+      return new TransactionData(payloadList.get(0), payloadList.get(1), payloadList.get(2), payloadList.get(3), payloadList.get(4), "", "", payloadList.get(5), System.currentTimeMillis());
+    }
+    else if (payloadList.get(4).equals("regular") || payloadList.get(4).equals("invalidation")){
+      //Create a transaction data object with the 7 items from the payload and return it
+      return new TransactionData(payloadList.get(0), "", payloadList.get(1), payloadList.get(2), payloadList.get(3), payloadList.get(4), payloadList.get(5), "", System.currentTimeMillis());
+    }
+    else{
+      throw new InvalidTransactionException("Invalid action");
+    }
   }
 
   /**
-   * Helper function to retrieve the board, state, playerOne, and playerTwo from state store.
+   * Helper function to retrieve the workflowID and state from state store.
    */
-  private GameData getStateData(String stateEntry, String gameName)
-      throws InternalError, InvalidTransactionException {
+  private WorkflowData getStateData(String stateEntry, String workflowId)
+          throws InternalError, InvalidTransactionException {
+    //?? If state entry has length zero, return a new WorkflowData object with all empty parameters. What is state entry?
     if (stateEntry.length() == 0) {
-      return new GameData("", "", "", "", "");
+      return new WorkflowData("", "", "", "");
     } else {
+      //Call getWorkflowCsv() with stateEntry and workflowId. Split the workflowCSV into an arraylist workflowList.
       try {
-        String gameCsv = getGameCsv(stateEntry, gameName);
-        ArrayList<String> gameList = new ArrayList<>(Arrays.asList(gameCsv.split(",")));
-        while (gameList.size() < 5) {
-          gameList.add("");
+        String workflowCsv = getWorkflowCsv(stateEntry, workflowId);
+        ArrayList<String> workflowList = new ArrayList<>(Arrays.asList(workflowCsv.split(",")));
+        //While the workflow list has less than 4 things, add empty strings
+        while (workflowList.size() < 3) {
+          workflowList.add("");
         }
-        return new GameData(gameList.get(0), gameList.get(1),
-            gameList.get(2), gameList.get(3), gameList.get(4));
+        //Create and return a new WorkflowData object from the game list
+        return new WorkflowData(workflowList.get(0), workflowList.get(1), workflowList.get(2), workflowList.get(3));
+        //?? If ever an error occurs, throw exception. What could cause this?
       } catch (Error e) {
-        throw new InternalError("Failed to deserialize game data");
+        throw new InternalError("Failed to deserialize workflow data");
       }
     }
   }
 
   /**
-   * Helper function to generate game address.
+   * Helper function to generate workflow address.
    */
-  private String makeGameAddress(String gameName) throws InternalError {
+  private String makeTaskAddress(String taskID) throws InternalError {
+    //Hash the task name and return taskNameSpace concatenated with a substring of the hashed name
+    //Unless error occurs, then throw exception
+    //! do we need to change the hashing or remove it potentially
     try {
-      String hashedName = Utils.hash512(gameName.getBytes("UTF-8"));
-      return xoNameSpace + hashedName.substring(0, 64);
+      String hashedName = Utils.hash512(taskID.getBytes("UTF-8"));
+      return taskNameSpace + hashedName.substring(0, 64);
     } catch (UnsupportedEncodingException e) {
       throw new InternalError("Internal Error: " + e.toString());
     }
   }
 
   /**
-   * Helper function to retrieve the correct game info from the list of game data CSV.
+   * Helper function to retrieve the correct workflow info from the list of workflow data CSV.
    */
-  private String getGameCsv(String stateEntry, String gameName) {
-    ArrayList<String> gameCsvList = new ArrayList<>(Arrays.asList(stateEntry.split("\\|")));
-    for (String gameCsv : gameCsvList) {
-      if (gameCsv.regionMatches(0, gameName, 0, gameName.length())) {
-        return gameCsv;
+  private String getWorkflowCsv(String stateEntry, String workflowId) {
+    //Split stateEntry into workflowCSV arraylist
+    ArrayList<String> workflowCsvList = new ArrayList<>(Arrays.asList(stateEntry.split("\\|")));
+    //Find and return the workflowCSV in the list with the correct blockchain name
+    //?? What is region matches
+    //Otherwise return an empty string
+    for (String workflowCsv : workflowCsvList) {
+      if (workflowCsv.regionMatches(0, workflowId, 0, workflowId.length())) {
+        return workflowCsv;
       }
     }
     return "";
   }
 
   /** Helper function to store state data. */
-  private void storeGameData(
-      String address, GameData gameData, String stateEntry, Context context)
-      throws InternalError, InvalidTransactionException {
-    String gameDataCsv = String.format("%s,%s,%s,%s,%s",
-        gameData.gameName, gameData.board, gameData.state, gameData.playerOne, gameData.playerTwo);
+  private void storeWorkflowData(
+          String address, WorkflowData workflowData, String stateEntry, Context context)
+  //Try
+          throws InternalError, InvalidTransactionException {
+    //Format workflow data into a workflowDataCSV strig
+    String workflowDataCsv = String.format("%s,%s,%s,%s",
+            workflowData.workflowId, workflowData.parentWorkflowId, workflowData.parentTaskId, workflowData.design);
+    //If stateEntry length is zero, make the state entry the workflowDataCSV
     if (stateEntry.length() == 0) {
-      stateEntry = gameDataCsv;
+      stateEntry = workflowDataCsv;
+      //Otherwise, split the state entry into an arraylist
     } else {
       ArrayList<String> dataList = new ArrayList<>(Arrays.asList(stateEntry.split("\\|")));
+      //For every item in the arraylist
       for (int i = 0; i <= dataList.size(); i++) {
+        //If the number of the item matches the size of the list (the last item of the list or the item matches
+        //the game name
         if (i == dataList.size()
-            || dataList.get(i).regionMatches(0, gameData.gameName, 0, gameData.gameName.length())) {
-          dataList.set(i, gameDataCsv);
+                || dataList.get(i).regionMatches(0, workflowData.workflowId, 0, workflowData.workflowId.length())) {
+          //Make that index workflowDataCsv and break
+          dataList.set(i, workflowDataCsv);
           break;
         }
       }
+      //Reformat the new state entry from dataList
       stateEntry = StringUtils.join(dataList, "|");
     }
 
+    //Do some checks and if address size is too small, throw an exception
     ByteString csvByteString = ByteString.copyFromUtf8(stateEntry);
     Map.Entry<String, ByteString> entry = new AbstractMap.SimpleEntry<>(address, csvByteString);
     Collection<Map.Entry<String, ByteString>> addressValues = Collections.singletonList(entry);
@@ -249,200 +307,113 @@ public class XoHandler implements TransactionHandler {
   }
 
   /**
-   * Function that handles game logic.
+   * Function that handles logic based on genesis, regular, or invalidation action.
    */
-  private GameData playXo(TransactionData transactionData, GameData gameData, String player)
-      throws InvalidTransactionException, InternalError {
+  private WorkflowData initiateAction(TransactionData transactionData, WorkflowData workflowData, String scientist)
+          throws InvalidTransactionException, InternalError {
+    //Check transactionData action
     switch (transactionData.action) {
-      case "create":
-        return applyCreate(transactionData, gameData, player);
-      case "take":
-        int space;
-        try {
-          space = Integer.parseInt(transactionData.space);
-        } catch (NumberFormatException e) {
-          throw new InvalidTransactionException("Space could not be converted to an integer.");
-        }
-        if (space < 1 || space > gameData.board.length()) {
-          throw new InvalidTransactionException(
-              String.format("Invalid space: %s", transactionData.space));
-        }
-        return applyTake(transactionData, gameData, player);
+      //! Implement proper checks prior to function calls (see old xo)
+      case "genesis":
+        return applyGenesis(transactionData, workflowData, scientist);
+      case "regular":
+        return applyRegular(transactionData, workflowData, scientist);
+      case "invalidation":
+        return applyInvalidation(transactionData, workflowData, scientist);
+
+      //Overall if fails, throw exception
       default:
         throw new InvalidTransactionException(String.format(
-            "Invalid action: %s", transactionData.action));
+                "Invalid action: %s", transactionData.action));
     }
   }
 
+  //! What is the state and how are the 3 actions changing it?
   /**
-   * Function that handles game logic for 'create' action.
+   * Function that handles blockchain logic for 'genesis' action.
    */
-  private GameData applyCreate(TransactionData transactionData, GameData gameData, String player)
-      throws InvalidTransactionException {
-    if (!gameData.board.equals("")) {
-      throw new InvalidTransactionException("Invalid Action: Game already exists");
-    }
-    display(String.format("Player %s created a game", abbreviate(player)));
-    return new GameData(
-    transactionData.gameName, 
-    new String(new char[
-    (int) Math.pow(Integer.parseInt(transactionData.space),2)
-    ]).replace('\0', '-'), 
-    "P1-NEXT", "", "");
+  private WorkflowData applyGenesis(TransactionData transactionData, WorkflowData workflowData, String scientist)
+          throws InvalidTransactionException {
+
+    //!!! Must add check like above to ensure that a workflow with same id doesn't exist already
+
+//        if (!workflowData.state.equals("")) {
+//            throw new InvalidTransactionException("Invalid Action: Blockchain already exists");
+//        }
+
+
+    //Call display function and give scientist name
+    display(String.format("Scientist %s created a workflow genesis block", abbreviate(scientist)));
+    //Return new WorkflowData object with information about the new workflow
+    String[] designArray = new String[Integer.parseInt(transactionData.design)];
+    Arrays.fill(designArray, "-");
+    String designString = Arrays.toString(designArray);
+    //Set the design array to have all values set to "-" which represents that the task has not been done ever
+    return new WorkflowData(
+            transactionData.workflowId, transactionData.parentWorkflowId, transactionData.parentTaskId, designString);
   }
 
+
+
   /**
-   * Function that handles game logic for 'take' action.
+   * Function that handles logic for 'regular' action (workflow task).
    */
-  private GameData applyTake(TransactionData transactionData, GameData gameData, String player)
-      throws InvalidTransactionException, InternalError {
-    if (Arrays.asList("P1-WIN", "P2-WIN", "TIE").contains(gameData.state)) {
-      throw new InvalidTransactionException("Invalid action: Game has ended");
-    }
-    if (gameData.board.equals("")) {
-      throw new InvalidTransactionException("Invalid action: 'take' requires an existing game");
-    }
-    if (!Arrays.asList("P1-NEXT", "P2-NEXT").contains(gameData.state)) {
-      throw new InternalError(String.format(
-          "Internal Error: Game has reached an invalid state: %s", gameData.state));
-    }
+  private WorkflowData applyRegular(TransactionData transactionData, WorkflowData workflowData, String scientist)
+          throws InvalidTransactionException, InternalError {
 
-    // Assign players if new game
-    String updatedPlayerOne = gameData.playerOne;
-    String updatedPlayerTwo = gameData.playerTwo;
-    if (gameData.playerOne.equals("")) {
-      updatedPlayerOne = player;
-    } else if (gameData.playerTwo.equals("")) {
-      updatedPlayerTwo = player;
-    }
-
-    // Verify player identity and take space
-    int space = Integer.parseInt(transactionData.space);
-    char[] boardList = gameData.board.toCharArray();
-    String updatedState;
-    if (boardList[space - 1] != '-') {
-      throw new InvalidTransactionException("Space already taken");
-    }
-
-    if (gameData.state.equals("P1-NEXT") && player.equals(updatedPlayerOne)) {
-      boardList[space - 1] = 'H';
-      updatedState = "P2-NEXT";
-    } else if (gameData.state.equals("P2-NEXT") && player.equals(updatedPlayerTwo)) {
-      boardList[space - 1] = 'Q';
-      updatedState = "P1-NEXT";
-    } else {
+    //get task state
+    char[] designArray = workflowData.design.toCharArray();
+    char taskState = designArray[Integer.parseInt(transactionData.taskId)];
+    //make sure task hasn't already been done
+    if (taskState == 'v'){
       throw new InvalidTransactionException(String.format(
-          "Not this player's turn: %s", abbreviate(player)));
+              "Invalid action. Workflow task %s already complete", transactionData.taskId));
     }
+    //Set task state to valid
+    designArray[Integer.parseInt(transactionData.taskId)] = 'v';
+    String updatedDesign = Arrays.toString(designArray);
 
-    String updatedBoard = String.valueOf(boardList);
-    updatedState = determineState(boardList, updatedState);
-    GameData updatedGameData = new GameData(
-        gameData.gameName, updatedBoard, updatedState, updatedPlayerOne, updatedPlayerTwo);
+    //Create updated workflowData with the new state in the design
+    WorkflowData updatedWorkflowData = new WorkflowData(
+            workflowData.workflowId, workflowData.parentWorkflowId, workflowData.parentTaskId, updatedDesign);
 
+    //Call display() to show the action taken and return the updated blockchainData object
     display(
-        String.format("Player %s takes space %d \n", abbreviate(player), space)
-            + gameDataToString(updatedGameData));
-    return updatedGameData;
+            String.format("Scientist %1$s performs workflow task %2$s on workflow %3$s:\n", abbreviate(scientist), transactionData.taskId, workflowData.workflowId));
+
+    return updatedWorkflowData;
   }
 
   /**
-   * Helper function that updates game state based on the current board position.
+   * Function that handles logic for 'invalidation' action.
    */
-  private String determineState(char[] boardList, String state) {
-    if (isWin(boardList, 'X')) {
-      state = "P1-WIN";
-    } else if (isWin(boardList, 'O')) {
-      state = "P2-WIN";
-    } else if (!(String.valueOf(boardList).contains("-"))) {
-      state = "TIE";
-    }
-    return state;
-  }
+  private WorkflowData applyInvalidation(TransactionData transactionData, WorkflowData workflowData, String scientist)
+          throws InvalidTransactionException, InternalError {
 
-  /**
-   * Helper function that analyzes board position to determine if it is in a winning state.
-   */
-  private boolean isWin(char[] board, char letter) {
+    char[] designArray = workflowData.design.toCharArray();
+    char taskState = designArray[Integer.parseInt(transactionData.taskId)];
+    //make sure task has been done and is valid
+    if (taskState == 'i'){
+      throw new InvalidTransactionException(String.format(
+              "Invalid action. Workflow task %s already invalid", transactionData.taskId));
+    }
+    else if (taskState == '-'){
+      throw new InvalidTransactionException(String.format(
+              "Invalid action. Workflow task %s has not been completed yet", transactionData.taskId));
+    }
+    //Set task state to valid
+    designArray[Integer.parseInt(transactionData.taskId)] = 'i';
+    String updatedDesign = Arrays.toString(designArray);
 
-    boolean win = false;
-    //Horizontal Wins
-    int dim = (int) Math.sqrt(board.length);
-    for (int i = 0; i < dim; i++) {
-      win = true;
-      for (int j = 0; j < dim; j++) {
-        if (board[i * dim + j] != letter) {
-          win = false;
-          break;
-        }
-      }
-    }
-    //vertical wins
-    for (int i = 0; i < dim; i++) {
-      win = true;
-      for (int j = 0; j < dim; j++) {
-        if (board[(i * dim) + j] != letter) {
-          win = false;
-          break;
-        }
-      }
-    }
-    //diagonal 1
-    {
-      win = true;
-      for (int j = 0; j < dim; j++) {
-        if (board[j * (dim + 1)] != letter) {
-          win = false;
-          break;
-        }
-      }
-    }
-    //diagonal 2
-    {
-      win = true;
-      for (int j = 0; j < dim; j++) {
-        if (board[(j + 1) * (dim - 1)] != letter) {
-          win = false;
-          break;
-        }
-      }
-    }
-    return win;
-  }
+    //Create updated workflowData with the new state in the design
+    WorkflowData updatedWorkflowData = new WorkflowData(
+            workflowData.workflowId, workflowData.parentWorkflowId, workflowData.parentTaskId, updatedDesign);
 
-  /**
-   * Helper function to create an ASCII representation of the board.
-   */
-  private String gameDataToString(GameData gameData) {
-    String out = "";
-    
-    out += String.format("GAME: %s\n", gameData.gameName);
-    out += String.format("PLAYER 1: %s\n", abbreviate(gameData.playerOne));
-    out += String.format("PLAYER 2: %s\n", abbreviate(gameData.playerTwo));
-    out += String.format("STATE: %s\n", gameData.state);
-    out += "\n";
+    //Call display() to show the action taken and return the updated blockchainData object
+    display(
+            String.format("Scientist %1$s performs invalidation of workflow task %2$s on workflow %3$s:\n", abbreviate(scientist), transactionData.taskId, workflowData.workflowId));
 
-    char[] board = gameData.board.replace('-',' ').toCharArray();
-    
-    int dim = (int) Math.sqrt(board.length);
-    
-    for (int i = 0; i < dim - 1; i++) {
-      for (int j = 0; j < dim - 1; j++) {
-        out += String.format(" %c |", board[i * dim + j]);
-      }
-      out += String.format(" %c\n ", board[i * dim + (dim - 1)]);
-      
-      for (int j = 0; j < dim - 1; j++) {
-        out += String.format("---|");
-      }
-      out += String.format("---\n");
-    }
-    
-    for (int j = 0; j < dim - 1; j++) {
-      out += String.format(" %c |", board[(dim - 1) * dim + j]);
-    }
-    out += String.format(" %c\n ", board[(dim - 1) * dim + (dim - 1)]);
-    return out;
+    return updatedWorkflowData;
   }
 
   /**
@@ -450,18 +421,25 @@ public class XoHandler implements TransactionHandler {
    */
   private void display(String msg) {
     String displayMsg = "";
+    //Overall, just gets the length of the longest line in the message
+    //Set length to 0
     int length = 0;
+    //Make an array of the msg by splitting at new lines
     String[] msgLines = msg.split("\n");
+    //If there are new lines, for each line if the length of the
+    // line is greater than length, set length to be the line length
     if (msg.contains("\n")) {
       for (String line : msgLines) {
         if (line.length() > length) {
           length = line.length();
         }
       }
+      //If no newlines, set length to be the message length
     } else {
       length = msg.length();
     }
 
+    //Format the display message with dashes and call logger.info with the display message
     displayMsg = displayMsg.concat("\n+" + printDashes(length + 2) + "+\n");
     for (String line : msgLines) {
       displayMsg = displayMsg.concat("+" + StringUtils.center(line, length + 2) + "+\n");
@@ -474,6 +452,7 @@ public class XoHandler implements TransactionHandler {
    * Helper function to create a string with a specified number of dashes (for logging purposes).
    */
   private String printDashes(int length) {
+    //Make string of dashes with "length" number of dashes
     String dashes = "";
     for (int i = 0; i < length; i++) {
       dashes = dashes.concat("-");
@@ -488,3 +467,4 @@ public class XoHandler implements TransactionHandler {
     return player.substring(0, Math.min(player.length(), 6));
   }
 }
+
