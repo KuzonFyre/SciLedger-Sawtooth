@@ -89,10 +89,10 @@ public class XoHandler implements TransactionHandler {
     final String action;
     final String validRoot;
     final String invalidRoot;
-    final int design;
+    final String design;
     final long timestamp;
 
-    TransactionData(String taskID, String parentWorkflowId, String parentTaskId, String workflowId, String action, String validRoot, String invalidRoot, int design, long timestamp) {
+    TransactionData(String taskID, String parentWorkflowId, String parentTaskId, String workflowId, String action, String validRoot, String invalidRoot, String design, long timestamp) {
       this.taskId = taskID;
       this.parentWorkflowId = parentWorkflowId;
       this.parentTaskId = parentTaskId;
@@ -110,9 +110,9 @@ public class XoHandler implements TransactionHandler {
     final String workflowId;
     final String parentWorkflowId;
     final String parentTaskId;
-    final String[] design;
+    final String design;
 
-    WorkflowData(String workflowId, String parentWorkflowId, String parentTaskId, String[] design) {
+    WorkflowData(String workflowId, String parentWorkflowId, String parentTaskId, String design) {
       this.workflowId = workflowId;
       this.parentWorkflowId = parentWorkflowId;
       this.parentTaskId = parentTaskId;
@@ -152,9 +152,6 @@ public class XoHandler implements TransactionHandler {
     if (transactionData.action.equals("genesis")){
       if(transactionData.parentWorkflowId.equals("")){
         throw new InvalidTransactionException("Parent workflow ID required");
-      }
-      if(transactionData.design <= 0){
-        throw new InvalidTransactionException("Valid workflow design required");
       }
     }
       else if(transactionData.action.equals("regular") || transactionData.action.equals("invalidation")){
@@ -200,17 +197,12 @@ public class XoHandler implements TransactionHandler {
     }
     if(payloadList.get(4).equals("genesis")){
       int design;
-      try {
-        design = Integer.parseInt(payloadList.get(5));
-      } catch (NumberFormatException e) {
-        throw new InvalidTransactionException("Invalid workflow design");
-      }
       //Create a transaction data object with the 7 items from the payload and return it
-      return new TransactionData(payloadList.get(0), payloadList.get(1), payloadList.get(2), payloadList.get(3), payloadList.get(4), "", "", design, System.currentTimeMillis());
+      return new TransactionData(payloadList.get(0), payloadList.get(1), payloadList.get(2), payloadList.get(3), payloadList.get(4), "", "", payloadList.get(5), System.currentTimeMillis());
     }
     else if (payloadList.get(4).equals("regular") || payloadList.get(4).equals("invalidation")){
       //Create a transaction data object with the 7 items from the payload and return it
-      return new TransactionData(payloadList.get(0), "", payloadList.get(1), payloadList.get(2), payloadList.get(3), payloadList.get(4), payloadList.get(5), -1, System.currentTimeMillis());
+      return new TransactionData(payloadList.get(0), "", payloadList.get(1), payloadList.get(2), payloadList.get(3), payloadList.get(4), payloadList.get(5), "", System.currentTimeMillis());
     }
     else{
       throw new InvalidTransactionException("Invalid action");
@@ -224,8 +216,7 @@ public class XoHandler implements TransactionHandler {
           throws InternalError, InvalidTransactionException {
     //?? If state entry has length zero, return a new WorkflowData object with all empty parameters. What is state entry?
     if (stateEntry.length() == 0) {
-      String[] emptyArray = new String[];
-      return new WorkflowData("", "", "", emptyArray);
+      return new WorkflowData("", "", "", "");
     } else {
       //Call getWorkflowCsv() with stateEntry and workflowId. Split the workflowCSV into an arraylist workflowList.
       try {
@@ -321,7 +312,7 @@ public class XoHandler implements TransactionHandler {
   private WorkflowData initiateAction(TransactionData transactionData, WorkflowData workflowData, String scientist)
           throws InvalidTransactionException, InternalError {
     //Check transactionData action
-    switch (transactionData.type) {
+    switch (transactionData.action) {
       //! Implement proper checks prior to function calls (see old xo)
       case "genesis":
         return applyGenesis(transactionData, workflowData, scientist);
@@ -341,7 +332,7 @@ public class XoHandler implements TransactionHandler {
   /**
    * Function that handles blockchain logic for 'genesis' action.
    */
-  private GameData applyGenesis(TransactionData transactionData, WorkflowData workflowData, String scientist)
+  private WorkflowData applyGenesis(TransactionData transactionData, WorkflowData workflowData, String scientist)
           throws InvalidTransactionException {
 
     //!!! Must add check like above to ensure that a workflow with same id doesn't exist already
@@ -354,11 +345,12 @@ public class XoHandler implements TransactionHandler {
     //Call display function and give scientist name
     display(String.format("Scientist %s created a workflow genesis block", abbreviate(scientist)));
     //Return new WorkflowData object with information about the new workflow
-    String[] designArray = new String[transactionData.design];
+    String[] designArray = new String[Integer.parseInt(transactionData.design)];
+    Arrays.fill(designArray, "-");
+    String designString = Arrays.toString(designArray);
     //Set the design array to have all values set to "-" which represents that the task has not been done ever
-    Arrays.fill(designArray, "-")
     return new WorkflowData(
-            transactionData.workflowId, transactionData.parentWorkflowId, transactionData.parentTaskId, designArray);
+            transactionData.workflowId, transactionData.parentWorkflowId, transactionData.parentTaskId, designString);
   }
 
 
@@ -366,26 +358,28 @@ public class XoHandler implements TransactionHandler {
   /**
    * Function that handles logic for 'regular' action (workflow task).
    */
-  private GameData applyRegular(TransactionData transactionData, WorkflowData workflowData, String scientist)
+  private WorkflowData applyRegular(TransactionData transactionData, WorkflowData workflowData, String scientist)
           throws InvalidTransactionException, InternalError {
 
     //get task state
-    String taskState = workflowData.design[transactionData.taskId];
+    char[] designArray = workflowData.design.toCharArray();
+    char taskState = designArray[Integer.parseInt(transactionData.taskId)];
     //make sure task hasn't already been done
-    if (taskState.equals("v")){
+    if (taskState == 'v'){
       throw new InvalidTransactionException(String.format(
               "Invalid action. Workflow task %s already complete", transactionData.taskId));
     }
     //Set task state to valid
-    workflowData.design[transactionData.taskId] = "v";
+    designArray[Integer.parseInt(transactionData.taskId)] = 'v';
+    String updatedDesign = Arrays.toString(designArray);
 
     //Create updated workflowData with the new state in the design
     WorkflowData updatedWorkflowData = new WorkflowData(
-            workflowData.workflowId, workflowData.parentWorkflowId, workflowData.parentTaskId, workflowData.design);
+            workflowData.workflowId, workflowData.parentWorkflowId, workflowData.parentTaskId, updatedDesign);
 
     //Call display() to show the action taken and return the updated blockchainData object
     display(
-            String.format("Scientist %1$s performs workflow task %2$s on workflow %3$s:\n", abbreviate(scientist), transactionData.taskId, workflowData.workflowId);
+            String.format("Scientist %1$s performs workflow task %2$s on workflow %3$s:\n", abbreviate(scientist), transactionData.taskId, workflowData.workflowId));
 
     return updatedWorkflowData;
   }
@@ -393,30 +387,31 @@ public class XoHandler implements TransactionHandler {
   /**
    * Function that handles logic for 'invalidation' action.
    */
-  private GameData applyInvalidation(TransactionData transactionData, WorkflowData workflowData, String scientist)
+  private WorkflowData applyInvalidation(TransactionData transactionData, WorkflowData workflowData, String scientist)
           throws InvalidTransactionException, InternalError {
 
-    //get task state
-    String taskState = workflowData.design[transactionData.taskId];
+    char[] designArray = workflowData.design.toCharArray();
+    char taskState = designArray[Integer.parseInt(transactionData.taskId)];
     //make sure task has been done and is valid
-    if (taskState.equals("i")){
+    if (taskState == 'i'){
       throw new InvalidTransactionException(String.format(
               "Invalid action. Workflow task %s already invalid", transactionData.taskId));
     }
-    else if (taskState.equals("-")){
+    else if (taskState == '-'){
       throw new InvalidTransactionException(String.format(
               "Invalid action. Workflow task %s has not been completed yet", transactionData.taskId));
     }
     //Set task state to valid
-    workflowData.design[transactionData.taskId] = "i";
+    designArray[Integer.parseInt(transactionData.taskId)] = 'i';
+    String updatedDesign = Arrays.toString(designArray);
 
     //Create updated workflowData with the new state in the design
     WorkflowData updatedWorkflowData = new WorkflowData(
-            workflowData.workflowId, workflowData.parentWorkflowId, workflowData.parentTaskId, workflowData.design);
+            workflowData.workflowId, workflowData.parentWorkflowId, workflowData.parentTaskId, updatedDesign);
 
     //Call display() to show the action taken and return the updated blockchainData object
     display(
-            String.format("Scientist %1$s performs invalidation of workflow task %2$s on workflow %3$s:\n", abbreviate(scientist), transactionData.taskId, workflowData.workflowId);
+            String.format("Scientist %1$s performs invalidation of workflow task %2$s on workflow %3$s:\n", abbreviate(scientist), transactionData.taskId, workflowData.workflowId));
 
     return updatedWorkflowData;
   }
