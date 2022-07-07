@@ -187,12 +187,12 @@ public class XoHandler implements TransactionHandler {
           throws InvalidTransactionException {
     String payload =  transactionRequest.getPayload().toStringUtf8();
     ArrayList<String> payloadList = new ArrayList<>(Arrays.asList(payload.split(",")));
-    //If payload has more than 7 things, throw exception
-    if (payloadList.size() > 7) {
+    //If payload has more than 6 things, throw exception
+    if (payloadList.size() > 6) {
       throw new InvalidTransactionException("Invalid payload serialization");
     }
-    //Add empty string to payload list until it has 7 things
-    while (payloadList.size() < 7) {
+    //Add empty string to payload list until it has 6 things
+    while (payloadList.size() < 6) {
       payloadList.add("");
     }
     if(payloadList.get(4).equals("genesis")){
