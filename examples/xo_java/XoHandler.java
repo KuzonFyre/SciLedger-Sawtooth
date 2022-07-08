@@ -2,9 +2,7 @@
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
  You may obtain a copy of the License at
-
      http://www.apache.org/licenses/LICENSE-2.0
-
  Unless required by applicable law or agreed to in writing, software
  distributed under the License is distributed on an "AS IS" BASIS,
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -46,10 +44,9 @@ public class XoHandler implements TransactionHandler {
    * constructor.
    */
   public XoHandler() {
-  
     try {
       this.xoNameSpace = Utils.hash512(
-        this.transactionFamilyName().getBytes("UTF-8")).substring(0, 6);
+              this.transactionFamilyName().getBytes("UTF-8")).substring(0, 6);
     } catch (UnsupportedEncodingException usee) {
       usee.printStackTrace();
       this.xoNameSpace = "";
@@ -103,25 +100,14 @@ public class XoHandler implements TransactionHandler {
 
   @Override
   public void apply(TpProcessRequest transactionRequest, Context context)
-      throws InvalidTransactionException, InternalError {
+          throws InvalidTransactionException, InternalError {
     TransactionData transactionData = getUnpackedTransaction(transactionRequest);
 
     // The transaction signer is the player
     String player;
     TransactionHeader header = transactionRequest.getHeader();
     player = header.getSignerPublicKey();
-    int space = 0;
-    try {
-      space = Integer.parseInt(transactionData.space);
-    } catch (NumberFormatException e) {
-      if (transactionData.action.equals("take")) {
-        throw new InvalidTransactionException("Space could not be converted to an integer.");
-      }
-      if (transactionData.action.equals("create")) {
-        throw new InvalidTransactionException("Dimensions could not be converted to an integer. "
-         + transactionData.space);
-      }
-    }
+
     if (transactionData.gameName.equals("")) {
       throw new InvalidTransactionException("Name is required");
     }
@@ -131,27 +117,30 @@ public class XoHandler implements TransactionHandler {
     if (transactionData.action.equals("")) {
       throw new InvalidTransactionException("Action is required");
     }
-    if (transactionData.action.equals("create")) {
-      if (space < 1 || space > 12) {
-        throw new InvalidTransactionException(
-          String.format(
-          "Invalid dimension:  Should be between 1 and 12: %s", transactionData.space
-          ));
+    if (transactionData.action.equals("take")) {
+      try {
+        int space = Integer.parseInt(transactionData.space);
+
+        if (space < 1 || space > 9) {
+          throw new InvalidTransactionException(
+                  String.format("Invalid space: %s", transactionData.space));
+        }
+      } catch (NumberFormatException e) {
+        throw new InvalidTransactionException("Space could not be converted to an integer.");
       }
     }
     if (!transactionData.action.equals("take") && !transactionData.action.equals("create")) {
       throw new InvalidTransactionException(
-          String.format("Invalid action: %s", transactionData.action));
+              String.format("Invalid action: %s", transactionData.action));
     }
 
     String address = makeGameAddress(transactionData.gameName);
     // context.get() returns a list.
     // If no data has been stored yet at the given address, it will be empty.
     String stateEntry = context.getState(
-        Collections.singletonList(address)
+            Collections.singletonList(address)
     ).get(address).toStringUtf8();
     GameData stateData = getStateData(stateEntry, transactionData.gameName);
-    
     GameData updatedGameData = playXo(transactionData, stateData, player);
     storeGameData(address, updatedGameData, stateEntry, context);
   }
@@ -160,7 +149,7 @@ public class XoHandler implements TransactionHandler {
    * Helper function to retrieve game gameName, action, and space from transaction request.
    */
   private TransactionData getUnpackedTransaction(TpProcessRequest transactionRequest)
-      throws InvalidTransactionException {
+          throws InvalidTransactionException {
     String payload =  transactionRequest.getPayload().toStringUtf8();
     ArrayList<String> payloadList = new ArrayList<>(Arrays.asList(payload.split(",")));
     if (payloadList.size() > 3) {
@@ -176,7 +165,7 @@ public class XoHandler implements TransactionHandler {
    * Helper function to retrieve the board, state, playerOne, and playerTwo from state store.
    */
   private GameData getStateData(String stateEntry, String gameName)
-      throws InternalError, InvalidTransactionException {
+          throws InternalError, InvalidTransactionException {
     if (stateEntry.length() == 0) {
       return new GameData("", "", "", "", "");
     } else {
@@ -187,7 +176,7 @@ public class XoHandler implements TransactionHandler {
           gameList.add("");
         }
         return new GameData(gameList.get(0), gameList.get(1),
-            gameList.get(2), gameList.get(3), gameList.get(4));
+                gameList.get(2), gameList.get(3), gameList.get(4));
       } catch (Error e) {
         throw new InternalError("Failed to deserialize game data");
       }
@@ -221,17 +210,17 @@ public class XoHandler implements TransactionHandler {
 
   /** Helper function to store state data. */
   private void storeGameData(
-      String address, GameData gameData, String stateEntry, Context context)
-      throws InternalError, InvalidTransactionException {
+          String address, GameData gameData, String stateEntry, Context context)
+          throws InternalError, InvalidTransactionException {
     String gameDataCsv = String.format("%s,%s,%s,%s,%s",
-        gameData.gameName, gameData.board, gameData.state, gameData.playerOne, gameData.playerTwo);
+            gameData.gameName, gameData.board, gameData.state, gameData.playerOne, gameData.playerTwo);
     if (stateEntry.length() == 0) {
       stateEntry = gameDataCsv;
     } else {
       ArrayList<String> dataList = new ArrayList<>(Arrays.asList(stateEntry.split("\\|")));
       for (int i = 0; i <= dataList.size(); i++) {
         if (i == dataList.size()
-            || dataList.get(i).regionMatches(0, gameData.gameName, 0, gameData.gameName.length())) {
+                || dataList.get(i).regionMatches(0, gameData.gameName, 0, gameData.gameName.length())) {
           dataList.set(i, gameDataCsv);
           break;
         }
@@ -252,25 +241,15 @@ public class XoHandler implements TransactionHandler {
    * Function that handles game logic.
    */
   private GameData playXo(TransactionData transactionData, GameData gameData, String player)
-      throws InvalidTransactionException, InternalError {
+          throws InvalidTransactionException, InternalError {
     switch (transactionData.action) {
       case "create":
         return applyCreate(transactionData, gameData, player);
       case "take":
-        int space;
-        try {
-          space = Integer.parseInt(transactionData.space);
-        } catch (NumberFormatException e) {
-          throw new InvalidTransactionException("Space could not be converted to an integer.");
-        }
-        if (space < 1 || space > gameData.board.length()) {
-          throw new InvalidTransactionException(
-              String.format("Invalid space: %s", transactionData.space));
-        }
         return applyTake(transactionData, gameData, player);
       default:
         throw new InvalidTransactionException(String.format(
-            "Invalid action: %s", transactionData.action));
+                "Invalid action: %s", transactionData.action));
     }
   }
 
@@ -278,24 +257,19 @@ public class XoHandler implements TransactionHandler {
    * Function that handles game logic for 'create' action.
    */
   private GameData applyCreate(TransactionData transactionData, GameData gameData, String player)
-      throws InvalidTransactionException {
+          throws InvalidTransactionException {
     if (!gameData.board.equals("")) {
       throw new InvalidTransactionException("Invalid Action: Game already exists");
     }
     display(String.format("Player %s created a game", abbreviate(player)));
-    return new GameData(
-    transactionData.gameName, 
-    new String(new char[
-    (int) Math.pow(Integer.parseInt(transactionData.space),2)
-    ]).replace('\0', '-'), 
-    "P1-NEXT", "", "");
+    return new GameData(transactionData.gameName, "---------", "P1-NEXT", "", "");
   }
 
   /**
    * Function that handles game logic for 'take' action.
    */
   private GameData applyTake(TransactionData transactionData, GameData gameData, String player)
-      throws InvalidTransactionException, InternalError {
+          throws InvalidTransactionException, InternalError {
     if (Arrays.asList("P1-WIN", "P2-WIN", "TIE").contains(gameData.state)) {
       throw new InvalidTransactionException("Invalid action: Game has ended");
     }
@@ -304,7 +278,7 @@ public class XoHandler implements TransactionHandler {
     }
     if (!Arrays.asList("P1-NEXT", "P2-NEXT").contains(gameData.state)) {
       throw new InternalError(String.format(
-          "Internal Error: Game has reached an invalid state: %s", gameData.state));
+              "Internal Error: Game has reached an invalid state: %s", gameData.state));
     }
 
     // Assign players if new game
@@ -325,24 +299,24 @@ public class XoHandler implements TransactionHandler {
     }
 
     if (gameData.state.equals("P1-NEXT") && player.equals(updatedPlayerOne)) {
-      boardList[space - 1] = 'H';
+      boardList[space - 1] = 'X';
       updatedState = "P2-NEXT";
     } else if (gameData.state.equals("P2-NEXT") && player.equals(updatedPlayerTwo)) {
-      boardList[space - 1] = 'Q';
+      boardList[space - 1] = 'O';
       updatedState = "P1-NEXT";
     } else {
       throw new InvalidTransactionException(String.format(
-          "Not this player's turn: %s", abbreviate(player)));
+              "Not this player's turn: %s", abbreviate(player)));
     }
 
     String updatedBoard = String.valueOf(boardList);
     updatedState = determineState(boardList, updatedState);
     GameData updatedGameData = new GameData(
-        gameData.gameName, updatedBoard, updatedState, updatedPlayerOne, updatedPlayerTwo);
+            gameData.gameName, updatedBoard, updatedState, updatedPlayerOne, updatedPlayerTwo);
 
     display(
-        String.format("Player %s takes space %d \n", abbreviate(player), space)
-            + gameDataToString(updatedGameData));
+            String.format("Player %s takes space %d \n", abbreviate(player), space)
+                    + gameDataToString(updatedGameData));
     return updatedGameData;
   }
 
@@ -364,50 +338,20 @@ public class XoHandler implements TransactionHandler {
    * Helper function that analyzes board position to determine if it is in a winning state.
    */
   private boolean isWin(char[] board, char letter) {
+    int[][] wins = new int[][]{
+            {1, 2, 3}, {4, 5, 6}, {7, 8, 9},
+            {1, 4, 7}, {2, 5, 8}, {3, 6, 9},
+            {1, 5, 9}, {3, 5, 7},
+    };
 
-    boolean win = false;
-    //Horizontal Wins
-    int dim = (int) Math.sqrt(board.length);
-    for (int i = 0; i < dim; i++) {
-      win = true;
-      for (int j = 0; j < dim; j++) {
-        if (board[i * dim + j] != letter) {
-          win = false;
-          break;
-        }
+    for (int[] win : wins) {
+      if (board[win[0] - 1] == letter
+              && board[win[1] - 1] == letter
+              && board[win[2] - 1] == letter) {
+        return true;
       }
     }
-    //vertical wins
-    for (int i = 0; i < dim; i++) {
-      win = true;
-      for (int j = 0; j < dim; j++) {
-        if (board[(i * dim) + j] != letter) {
-          win = false;
-          break;
-        }
-      }
-    }
-    //diagonal 1
-    {
-      win = true;
-      for (int j = 0; j < dim; j++) {
-        if (board[j * (dim + 1)] != letter) {
-          win = false;
-          break;
-        }
-      }
-    }
-    //diagonal 2
-    {
-      win = true;
-      for (int j = 0; j < dim; j++) {
-        if (board[(j + 1) * (dim - 1)] != letter) {
-          win = false;
-          break;
-        }
-      }
-    }
-    return win;
+    return false;
   }
 
   /**
@@ -415,7 +359,6 @@ public class XoHandler implements TransactionHandler {
    */
   private String gameDataToString(GameData gameData) {
     String out = "";
-    
     out += String.format("GAME: %s\n", gameData.gameName);
     out += String.format("PLAYER 1: %s\n", abbreviate(gameData.playerOne));
     out += String.format("PLAYER 2: %s\n", abbreviate(gameData.playerTwo));
@@ -423,25 +366,11 @@ public class XoHandler implements TransactionHandler {
     out += "\n";
 
     char[] board = gameData.board.replace('-',' ').toCharArray();
-    
-    int dim = (int) Math.sqrt(board.length);
-    
-    for (int i = 0; i < dim - 1; i++) {
-      for (int j = 0; j < dim - 1; j++) {
-        out += String.format(" %c |", board[i * dim + j]);
-      }
-      out += String.format(" %c\n ", board[i * dim + (dim - 1)]);
-      
-      for (int j = 0; j < dim - 1; j++) {
-        out += String.format("---|");
-      }
-      out += String.format("---\n");
-    }
-    
-    for (int j = 0; j < dim - 1; j++) {
-      out += String.format(" %c |", board[(dim - 1) * dim + j]);
-    }
-    out += String.format(" %c\n ", board[(dim - 1) * dim + (dim - 1)]);
+    out += String.format("%c | %c |  %c\n", board[0], board[1], board[2]);
+    out += "---|---|---\n";
+    out += String.format("%c | %c |  %c\n", board[3], board[4], board[5]);
+    out += "---|---|---\n";
+    out += String.format("%c | %c |  %c\n", board[6], board[7], board[8]);
     return out;
   }
 
