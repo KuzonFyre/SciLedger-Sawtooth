@@ -65,12 +65,12 @@ class XoClient:
         self._signer = CryptoFactory(create_context('secp256k1')) \
             .new_signer(private_key)
 
-    def create(self, name, dimensions, wait=None, auth_user=None, auth_password=None):
+    def genisis(self, workflowID, parentWorkflowID, parentTaskID, auth_user=None, auth_password=None):
         return self._send_xo_txn(
-            name,
-            "create",
-            dimensions,
-            wait=wait,
+            workflowID,
+            "genisis",
+            parentWorkflowID,
+            parentTaskID,
             auth_user=auth_user,
             auth_password=auth_password)
 

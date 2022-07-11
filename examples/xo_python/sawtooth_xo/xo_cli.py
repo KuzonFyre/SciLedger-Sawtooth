@@ -71,7 +71,7 @@ def setup_loggers(verbose_level):
 
 def add_genisis_parser(subparsers, parent_parser):
     parser = subparsers.add_parser(
-        'genisis,
+        'genisis',
         help='Creates a new workflow',
         description='Sends a transaction to start a workflow with the '
         'identifier <workflowID>. This transaction will fail if the specified '
@@ -153,7 +153,7 @@ def add_show_parser(subparsers, parent_parser):
     parser = subparsers.add_parser(
         'show',
         help='Displays information about a workflow',
-        description='Displays the workflow,
+        description='Displays the workflow',
         parents=[parent_parser])
 
     parser.add_argument(
@@ -258,7 +258,7 @@ def add_invalidate_parser(subparsers, parent_parser):
         type=str,
         help='specify URL of REST API')
         
-        parser.add_argument(
+    parser.add_argument(
         '--username',
         type=str,
         help="identify name of user's private key file")
@@ -352,11 +352,11 @@ def do_list(args):
 
             print(fmt % (workflowID, parentWorkflowID, parentTaskID))
     else:
-        raise XoException("Could not retrieve game listing.")
+        raise XoException("Could not retrieve workflow listing.")
 
 
 def do_show(args):
-    name = args.name
+    name = args.workflowID
 
     url = _get_url(args)
     auth_user, auth_password = _get_auth_info(args)
@@ -402,24 +402,19 @@ def do_show(args):
 
 
 def do_genisis(args):
-    name = args.name
-    dimensions = args.dimensions
+    workflowID = args.workflowID
+    parentWorkflowID = args.parentWorkflowID
+    parentTaskID = args.parentTaskID
     url = _get_url(args)
     keyfile = _get_keyfile(args)
     auth_user, auth_password = _get_auth_info(args)
 
     client = XoClient(base_url=url, keyfile=keyfile)
 
-
-    if args.wait and args.wait > 0:
-        response = client.create(
-            name, dimensions, wait=args.wait,
-            auth_user=auth_user,
-            auth_password=auth_password)
-    else:
-        response = client.create(
-            name, dimensions, auth_user=auth_user,
-            auth_password=auth_password)
+    response = client.genisis(
+    workflowID,parentWorkflowID,parentTaskID,
+    auth_user=auth_user,
+    auth_password=auth_password)
 
     print("Response: {}".format(response))
 
@@ -505,7 +500,7 @@ def main(prog_name=os.path.basename(sys.argv[0]), args=None):
     setup_loggers(verbose_level=verbose_level)
 
     if args.command == 'genisis':
-        do_create(args)
+        do_genisis(args)
     elif args.command == 'list':
         do_list(args)
     elif args.command == 'show':
