@@ -19,9 +19,9 @@ from sawtooth_processor_test.message_factory import MessageFactory
 class XoMessageFactory:
     def __init__(self, signer=None):
         self._factory = MessageFactory(
-            family_name="xo",
+            family_name="wf",
             family_version="1.0",
-            namespace=MessageFactory.sha512("xo".encode("utf-8"))[0:6],
+            namespace=MessageFactory.sha512("wf".encode("utf-8"))[0:6],
             signer=signer)
 
     def _game_to_address(self, game):

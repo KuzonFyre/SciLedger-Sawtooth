@@ -69,9 +69,9 @@ def setup_loggers(verbose_level):
     logger.addHandler(create_console_handler(verbose_level))
 
 
-def add_genisis_parser(subparsers, parent_parser):
+def add_genesis_parser(subparsers, parent_parser):
     parser = subparsers.add_parser(
-        'genisis',
+        'genesis',
         help='Creates a new workflow',
         description='Sends a transaction to start a workflow with the '
         'identifier <workflowID>. This transaction will fail if the specified '
@@ -342,7 +342,7 @@ def create_parser(prog_name):
 
     subparsers.required = True
 
-    add_genisis_parser(subparsers, parent_parser)
+    add_genesis_parser(subparsers, parent_parser)
     add_list_parser(subparsers, parent_parser)
     add_show_parser(subparsers, parent_parser)
     add_regular_parser(subparsers, parent_parser)
@@ -419,7 +419,7 @@ def do_show(args):
         raise XoException("Game not found: {}".format(name))
 
 
-def do_genisis(args):
+def do_genesis(args):
     workflowID = args.workflowID
     parentWorkflowID = args.parentWorkflowID
     parentTaskID = args.parentTaskID
@@ -429,8 +429,8 @@ def do_genisis(args):
 
     client = XoClient(base_url=url, keyfile=keyfile)
 
-    response = client.genisis(
-    workflowID,parentWorkflowID,parentTaskID,
+    response = client.genesis(
+    workflowID,parentWorkflowID,parentTaskID, wait=None,
     auth_user=auth_user,
     auth_password=auth_password)
 
@@ -517,8 +517,8 @@ def main(prog_name=os.path.basename(sys.argv[0]), args=None):
 
     setup_loggers(verbose_level=verbose_level)
 
-    if args.command == 'genisis':
-        do_genisis(args)
+    if args.command == 'genesis':
+        do_genesis(args)
     elif args.command == 'list':
         do_list(args)
     elif args.command == 'show':

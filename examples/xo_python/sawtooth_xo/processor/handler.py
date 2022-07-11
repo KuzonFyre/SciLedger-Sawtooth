@@ -34,7 +34,7 @@ class XoTransactionHandler(TransactionHandler):
     # pylint: disable=invalid-overridden-method
     @property
     def family_name(self):
-        return 'xo'
+        return 'wf'
 
     @property
     def family_versions(self):

@@ -65,24 +65,23 @@ class XoClient:
         self._signer = CryptoFactory(create_context('secp256k1')) \
             .new_signer(private_key)
 
-    def genisis(self, workflowID, parentWorkflowID, parentTaskID, auth_user=None, auth_password=None):
+    def genesis(self, workflowID, parentWorkflowID, parentTaskID, wait=None, auth_user=None, auth_password=None):
         return self._send_xo_txn(
             workflowID,
-            "genisis",
-            parentWorkflowID,
-            parentTaskID,
-            auth_user=auth_user,
-            auth_password=auth_password)
-
-    def delete(self, name, wait=None, auth_user=None, auth_password=None):
-        return self._send_xo_txn(
-            name,
-            "delete",
+            "genesis",
             wait=wait,
             auth_user=auth_user,
             auth_password=auth_password)
 
-    def take(self, name, space, wait=None, auth_user=None, auth_password=None):
+    def invalidate(self, workflowID, taskID, wait=None, auth_user=None, auth_password=None):
+        return self._send_xo_txn(
+            name,
+            "invalidate",
+            wait=wait,
+            auth_user=auth_user,
+            auth_password=auth_password)
+
+    def take(self, workflowID, taskID, space, wait=None, auth_user=None, auth_password=None):
         return self._send_xo_txn(
             name,
             "take",
@@ -134,7 +133,7 @@ class XoClient:
             raise XoException(err) from err
 
     def _get_prefix(self):
-        return _sha512('xo'.encode('utf-8'))[0:6]
+        return _sha512('wf'.encode('utf-8'))[0:6]
 
     def _get_address(self, name):
         xo_prefix = self._get_prefix()
@@ -188,19 +187,18 @@ class XoClient:
     def _send_xo_txn(self,
                      name,
                      action,
-                     space="",
                      wait=None,
                      auth_user=None,
                      auth_password=None):
         # Serialization is just a delimited utf-8 encoded string
-        payload = ",".join([name, action, str(space)]).encode()
+        payload = ",".join([name, action]).encode()
         # Construct the address
         address = self._get_address(name)
         print(address)
 
         header = TransactionHeader(
             signer_public_key=self._signer.get_public_key().as_hex(),
-            family_name="xo",
+            family_name="wf",
             family_version="1.0",
             inputs=[address],
             outputs=[address],

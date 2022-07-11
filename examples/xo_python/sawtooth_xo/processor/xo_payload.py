@@ -34,18 +34,18 @@ class XoPayload:
         if not action:
             raise InvalidTransaction('Action is required')
 
-        if action not in ('create', 'take', 'delete'):
+        if action not in ('genesis', 'regular', 'invalidation'):
             raise InvalidTransaction('Invalid action: {}'.format(action))
 
-        if action == 'take':
-            try:
+        #if action == 'regular':
+            #try:
 
-                if int(space) not in range(1, 10):
-                    raise InvalidTransaction(
-                        "Space must be an integer from 1 to 9")
-            except ValueError:
-                raise InvalidTransaction(
-                    'Space must be an integer from 1 to 9') from ValueError
+                #if int(space) not in range(1, 10):
+                 #   raise InvalidTransaction(
+                  #      "Space must be an integer from 1 to 9")
+            #except ValueError:
+             #   raise InvalidTransaction(
+              #      'Space must be an integer from 1 to 9') from ValueError
 
         if action == 'take':
             space = int(space)
