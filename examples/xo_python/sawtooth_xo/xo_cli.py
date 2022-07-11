@@ -146,6 +146,27 @@ def add_list_parser(subparsers, parent_parser):
         type=str,
         help='specify URL of REST API')
         
+    parser.add_argument(
+        '--username',
+        type=str,
+        help="identify name of user's private key file")
+
+    parser.add_argument(
+        '--key-dir',
+        type=str,
+        help="identify directory of user's private key file")
+
+    parser.add_argument(
+        '--auth-user',
+        type=str,
+        help='specify username for authentication if REST API '
+        'is using Basic Auth')
+
+    parser.add_argument(
+        '--auth-password',
+        type=str,
+        help='specify password for authentication if REST API '
+        'is using Basic Auth')
     
 
 
@@ -338,18 +359,15 @@ def do_list(args):
 
     wf_list = [
         wf.split(',')
-        for wfs in client.list(auth_user=auth_user,
-                                 auth_password=auth_password)
+        for wfs in client.list(auth_user=None,
+                                 auth_password=None)
         for ws in games.decode().split('|')
     ]
 
     if wf_list is not None:
-        fmt = "%-15s %-15.15s %-15.15s %-9s %s"
-        print(fmt % ('Workflow ID', 'Parent Workflow ID', 'Parent Workflow Task ID'))
+        print(wf_list)
         for wf_data in wf_list:
-
             workflowID, parentWorkflowID, parentTaskID = wf_data
-
             print(fmt % (workflowID, parentWorkflowID, parentTaskID))
     else:
         raise XoException("Could not retrieve workflow listing.")
