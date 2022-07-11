@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<checkstyle version="6.11.2">
+<file name="/project/sawtooth-sdk-java/examples/intkey_java/IntegerKeyHandler.java">
+</file>
+<file name="/project/sawtooth-sdk-java/examples/intkey_java/IntegerKeyTransactionProcessor.java">
+</file>
+</checkstyle>
