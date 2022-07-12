@@ -323,9 +323,9 @@ public class XoHandler implements TransactionHandler {
 
     //!!! Must add check like above to ensure that a workflow with same id doesn't exist already
 
-//        if (!workflowData.state.equals("")) {
-//            throw new InvalidTransactionException("Invalid Action: Blockchain already exists");
-//        }
+        if (!workflowData.state.equals("")) {
+            throw new InvalidTransactionException("Invalid Action: Blockchain already exists");
+        }
 
 
     //Call display function and give scientist name

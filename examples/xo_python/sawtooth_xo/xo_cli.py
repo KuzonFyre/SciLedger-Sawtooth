@@ -33,8 +33,8 @@ from sawtooth_xo.xo_exceptions import XoException
 DISTRIBUTION_NAME = 'sawtooth-xo'
 
 
-# DEFAULT_URL = 'http://rest-api-2:8008'
-DEFAULT_URL = 'http://sawtooth-rest-api-default-1:8008'
+DEFAULT_URL = 'http://rest-api-2:8008'
+# DEFAULT_URL = 'http://sawtooth-rest-api-default-1:8008'
 
 
 def create_console_handler(verbose_level):

@@ -200,7 +200,7 @@ class XoClient:
 
         header = TransactionHeader(
             signer_public_key=self._signer.get_public_key().as_hex(),
-            family_name="wf",
+            family_name="xo",
             family_version="1.0",
             inputs=[address],
             outputs=[address],
