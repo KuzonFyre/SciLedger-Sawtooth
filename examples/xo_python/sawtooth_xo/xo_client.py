@@ -75,17 +75,16 @@ class XoClient:
 
     def invalidate(self, workflowID, taskID, wait=None, auth_user=None, auth_password=None):
         return self._send_xo_txn(
-            name,
+            workflowID,
             "invalidate",
             wait=wait,
             auth_user=auth_user,
             auth_password=auth_password)
 
-    def take(self, workflowID, taskID, space, wait=None, auth_user=None, auth_password=None):
+    def regular(self, workflowID, taskID, wait=None, auth_user=None, auth_password=None):
         return self._send_xo_txn(
-            name,
-            "take",
-            space,
+            workflowID,
+            "regular",
             wait=wait,
             auth_user=auth_user,
             auth_password=auth_password)
@@ -164,7 +163,10 @@ class XoClient:
 
         try:
             if data is not None:
+                print(data)
+                print(str(url) + str(headers))
                 result = requests.post(url, headers=headers, data=data)
+                print("hello World")
             else:
                 result = requests.get(url, headers=headers)
 
@@ -207,6 +209,7 @@ class XoClient:
             batcher_public_key=self._signer.get_public_key().as_hex(),
             nonce=hex(random.randint(0, 2**64))
         ).SerializeToString()
+
         print(address)
 
         signature = self._signer.sign(header)
@@ -240,7 +243,6 @@ class XoClient:
                     return response
 
             return response
-
         return self._send_request(
             "batches", batch_list.SerializeToString(),
             'application/octet-stream',

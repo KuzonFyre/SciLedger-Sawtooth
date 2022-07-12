@@ -33,7 +33,8 @@ from sawtooth_xo.xo_exceptions import XoException
 DISTRIBUTION_NAME = 'sawtooth-xo'
 
 
-DEFAULT_URL = 'http://rest-api-2:8008'
+# DEFAULT_URL = 'http://rest-api-2:8008'
+DEFAULT_URL = 'http://sawtooth-rest-api-default-1:8008'
 
 
 def create_console_handler(verbose_level):
@@ -119,6 +120,12 @@ def add_genesis_parser(subparsers, parent_parser):
         type=str,
         help='specify password for authentication if REST API '
         'is using Basic Auth')
+    parser.add_argument(
+        '--wait',
+        nargs='?',
+        const=sys.maxsize,
+        type=int,
+        help='set time, in seconds, to wait for game to commit')
 #
 #    parser.add_argument(
 #        '--disable-client-validation',
@@ -126,12 +133,7 @@ def add_genesis_parser(subparsers, parent_parser):
 #        default=False,
 #        help='disable client validation')
 #
-#    parser.add_argument(
-#        '--wait',
-#        nargs='?',
-#        const=sys.maxsize,
-#        type=int,
-#        help='set time, in seconds, to wait for game to commit')
+
 
 
 def add_list_parser(subparsers, parent_parser):
@@ -264,7 +266,7 @@ def add_regular_parser(subparsers, parent_parser):
 
 
 def add_invalidate_parser(subparsers, parent_parser):
-    parser = subparsers.add_parser('delete', parents=[parent_parser])
+    parser = subparsers.add_parser('invalidate', parents=[parent_parser])
 
     parser.add_argument(
         'workflowID',
@@ -334,8 +336,7 @@ def create_parser(prog_name):
     parent_parser = create_parent_parser(prog_name)
 
     parser = argparse.ArgumentParser(
-        description='Provides subcommands to play tic-tac-toe (also known as '
-        'Noughts and Crosses) by sending XO transactions.',
+        description='Provides subcommands to add and invalidate transactions on a blockchain',
         parents=[parent_parser])
 
     subparsers = parser.add_subparsers(title='subcommands', dest='command')
@@ -395,26 +396,6 @@ def do_show(args):
             ]
         }[name]
 
-        board = list(board_str.replace("-", " "))
-        print(len(board_str))
-        dimensions = int(math.sqrt(len(board_str)))
-        print("GAME:     : {}".format(name))
-        print("PLAYER 1  : {}".format(player1[:6]))
-        print("PLAYER 2  : {}".format(player2[:6]))
-        print("STATE     : {}".format(game_state))
-        print("")
-        for x in range(dimensions-1):
-            for y in range(dimensions-1):
-                print(" {} |".format(board[y+x*dimensions]), end='')
-            print(" {} ".format(board[(dimensions-1)+x*dimensions])) 
-            for y in range(dimensions-1):
-                print("---|".format(board[y+x*dimensions]),end='')
-            print("---".format(board[(dimensions-1)+x*dimensions])) 
-        for y in range(dimensions-1):
-            print(" {} |".format(board[y+(dimensions-1)*dimensions]),end='')
-        print(" {} ".format(board[(dimensions-1)+(dimensions-1)*dimensions])) 
-        print("")
-
     else:
         raise XoException("Game not found: {}".format(name))
 
@@ -428,19 +409,23 @@ def do_genesis(args):
     auth_user, auth_password = _get_auth_info(args)
 
     client = XoClient(base_url=url, keyfile=keyfile)
-
-    response = client.genesis(
-    workflowID,parentWorkflowID,parentTaskID, wait=None,
-    auth_user=auth_user,
-    auth_password=auth_password)
+    if args.wait and args.wait > 0:
+        response = client.genesis(
+            workflowID,parentWorkflowID,parentTaskID, wait=args.wait,
+            auth_user=auth_user,
+            auth_password=auth_password)
+    else:
+        response = client.genesis(
+            workflowID,parentWorkflowID,parentTaskID, wait=args.wait,
+            auth_user=auth_user,
+            auth_password=auth_password)
 
     print("Response: {}".format(response))
 
 
-def do_take(args):
-    name = args.name
-    space = args.space
-
+def do_regular(args):
+    workflowID = args.workflowID
+    taskID = args.taskID
     url = _get_url(args)
     keyfile = _get_keyfile(args)
     auth_user, auth_password = _get_auth_info(args)
@@ -448,13 +433,13 @@ def do_take(args):
     client = XoClient(base_url=url, keyfile=keyfile)
 
     if args.wait and args.wait > 0:
-        response = client.take(
+        response = client.regular(
             name, space, wait=args.wait,
             auth_user=auth_user,
             auth_password=auth_password)
     else:
-        response = client.take(
-            name, space,
+        response = client.regular(
+            workflowID, taskID,
             auth_user=auth_user,
             auth_password=auth_password)
 
@@ -462,8 +447,8 @@ def do_take(args):
 
 
 def do_delete(args):
-    name = args.name
-
+    workflowID = args.workflowID
+    taskID = args.taskID
     url = _get_url(args)
     keyfile = _get_keyfile(args)
     auth_user, auth_password = _get_auth_info(args)
@@ -471,13 +456,13 @@ def do_delete(args):
     client = XoClient(base_url=url, keyfile=keyfile)
 
     if args.wait and args.wait > 0:
-        response = client.delete(
-            name, wait=args.wait,
+        response = client.invalidate(
+            workflowID, taskID, wait=args.wait,
             auth_user=auth_user,
             auth_password=auth_password)
     else:
-        response = client.delete(
-            name, auth_user=auth_user,
+        response = client.invalidate(
+            workflowID, taskID, auth_user=auth_user,
             auth_password=auth_password)
 
     print("Response: {}".format(response))
@@ -523,8 +508,8 @@ def main(prog_name=os.path.basename(sys.argv[0]), args=None):
         do_list(args)
     elif args.command == 'show':
         do_show(args)
-    elif args.command == 'normal':
-        do_take(args)
+    elif args.command == 'regular':
+        do_regular(args)
     elif args.command == 'invalidate':
         do_delete(args)
     else:
