@@ -51,7 +51,7 @@ public class XoHandler implements TransactionHandler {
 
   @Override
   public String transactionFamilyName() {
-    return "task";
+    return "xo";
   }
 
   @Override
@@ -78,8 +78,8 @@ public class XoHandler implements TransactionHandler {
     final String design;
     final long timestamp;
 
-    TransactionData(String taskID, String parentWorkflowId, String parentTaskId, String workflowId, String action, String validRoot, String invalidRoot, String design, long timestamp) {
-      this.taskId = taskID;
+    TransactionData(String workflowId, String taskId, String parentWorkflowId, String parentTaskId, String action, String validRoot, String invalidRoot, String design, long timestamp) {
+      this.taskId = taskId;
       this.parentWorkflowId = parentWorkflowId;
       this.parentTaskId = parentTaskId;
       this.workflowId = workflowId;
@@ -174,23 +174,26 @@ public class XoHandler implements TransactionHandler {
     String payload =  transactionRequest.getPayload().toStringUtf8();
     ArrayList<String> payloadList = new ArrayList<>(Arrays.asList(payload.split(",")));
     //If payload has more than 6 things, throw exception
-    if (payloadList.size() > 6) {
+    if (payloadList.size() > 9) {
+      System.out.println(payloadList.toString());
       throw new InvalidTransactionException("Invalid payload serialization");
     }
     //Add empty string to payload list until it has 6 things
-    while (payloadList.size() < 6) {
+    while (payloadList.size() < 9) {
       payloadList.add("");
     }
-    if(payloadList.get(4).equals("genesis")){
+    if(payloadList.get(0).equals("genesis")){
       int design;
       //Create a transaction data object with the 7 items from the payload and return it
-      return new TransactionData(payloadList.get(0), payloadList.get(1), payloadList.get(2), payloadList.get(3), payloadList.get(4), "", "", payloadList.get(5), System.currentTimeMillis());
+      return new TransactionData(payloadList.get(1), payloadList.get(2), payloadList.get(3), payloadList.get(4), payloadList.get(0), "", "", payloadList.get(5), System.currentTimeMillis());
     }
-    else if (payloadList.get(4).equals("regular") || payloadList.get(4).equals("invalidation")){
+    else if (payloadList.get(0).equals("regular") || payloadList.get(0).equals("invalidation")){
       //Create a transaction data object with the 7 items from the payload and return it
-      return new TransactionData(payloadList.get(0), "", payloadList.get(1), payloadList.get(2), payloadList.get(3), payloadList.get(4), payloadList.get(5), "", System.currentTimeMillis());
+      System.out.println(payloadList.toString());
+      return new TransactionData(payloadList.get(1), payloadList.get(2), "", payloadList.get(3), payloadList.get(0), "", "", "", System.currentTimeMillis());
     }
     else{
+      
       throw new InvalidTransactionException("Invalid action");
     }
   }
@@ -323,9 +326,9 @@ public class XoHandler implements TransactionHandler {
 
     //!!! Must add check like above to ensure that a workflow with same id doesn't exist already
 
-        if (!workflowData.state.equals("")) {
-            throw new InvalidTransactionException("Invalid Action: Blockchain already exists");
-        }
+//        if (!workflowData.state.equals("")) {
+//            throw new InvalidTransactionException("Invalid Action: Blockchain already exists");
+//        }
 
 
     //Call display function and give scientist name

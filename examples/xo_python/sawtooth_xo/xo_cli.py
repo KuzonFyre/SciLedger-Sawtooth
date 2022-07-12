@@ -230,6 +230,11 @@ def add_regular_parser(subparsers, parent_parser):
         help='workflow task ID')
 
     parser.add_argument(
+        'parentTaskID',
+        type=str,
+        help='parent workflow task ID')
+        
+    parser.add_argument(
         '--url',
         type=str,
         help='specify URL of REST API')
@@ -426,6 +431,7 @@ def do_genesis(args):
 def do_regular(args):
     workflowID = args.workflowID
     taskID = args.taskID
+    parentTaskID = args.parentTaskID
     url = _get_url(args)
     keyfile = _get_keyfile(args)
     auth_user, auth_password = _get_auth_info(args)
@@ -434,12 +440,12 @@ def do_regular(args):
 
     if args.wait and args.wait > 0:
         response = client.regular(
-            name, space, wait=args.wait,
+            workflowID, taskID,parentTaskID,wait=args.wait,
             auth_user=auth_user,
             auth_password=auth_password)
     else:
         response = client.regular(
-            workflowID, taskID,
+            workflowID, taskID,parentTaskID,
             auth_user=auth_user,
             auth_password=auth_password)
 

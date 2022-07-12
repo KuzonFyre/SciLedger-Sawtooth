@@ -67,7 +67,7 @@ class XoClient:
 
     def genesis(self, workflowID, parentWorkflowID, parentTaskID, wait=None, auth_user=None, auth_password=None):
         return self._send_xo_txn(
-            workflowID,
+            [workflowID,taskID,parentWorkflowID,parentTaskID],
             "genesis",
             wait=wait,
             auth_user=auth_user,
@@ -75,15 +75,15 @@ class XoClient:
 
     def invalidate(self, workflowID, taskID, wait=None, auth_user=None, auth_password=None):
         return self._send_xo_txn(
-            workflowID,
+            [workflowID,taskID],
             "invalidate",
             wait=wait,
             auth_user=auth_user,
             auth_password=auth_password)
 
-    def regular(self, workflowID, taskID, wait=None, auth_user=None, auth_password=None):
+    def regular(self, workflowID, taskID, parentTaskID, wait=None, auth_user=None, auth_password=None):
         return self._send_xo_txn(
-            workflowID,
+            [workflowID,taskID,"",parentTaskID],
             "regular",
             wait=wait,
             auth_user=auth_user,
@@ -132,7 +132,7 @@ class XoClient:
             raise XoException(err) from err
 
     def _get_prefix(self):
-        return _sha512('wf'.encode('utf-8'))[0:6]
+        return _sha512('xo'.encode('utf-8'))[0:6]
 
     def _get_address(self, name):
         xo_prefix = self._get_prefix()
@@ -187,15 +187,16 @@ class XoClient:
         return result.text
 
     def _send_xo_txn(self,
-                     name,
+                     info,
                      action,
                      wait=None,
                      auth_user=None,
                      auth_password=None):
         # Serialization is just a delimited utf-8 encoded string
-        payload = ",".join([name, action]).encode()
+        info.insert(0,action)
+        payload = ",".join(info).encode()
         # Construct the address
-        address = self._get_address(name)
+        address = self._get_address(str(info[0])+str(info[1]))
         print(address)
 
         header = TransactionHeader(
