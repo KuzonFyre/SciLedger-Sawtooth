@@ -123,6 +123,7 @@ public class XoHandler implements TransactionHandler {
       throw new InvalidTransactionException("Task ID required");
     }
     if(transactionData.parentTaskId.equals("")){
+      System.out.println(transactionData.taskId);
       throw new InvalidTransactionException("Parent task ID required");
     }
     if(transactionData.workflowId.equals("")){
@@ -190,7 +191,7 @@ public class XoHandler implements TransactionHandler {
     else if (payloadList.get(0).equals("regular") || payloadList.get(0).equals("invalidation")){
       //Create a transaction data object with the 7 items from the payload and return it
       System.out.println(payloadList.toString());
-      return new TransactionData(payloadList.get(1), payloadList.get(2), "", payloadList.get(3), payloadList.get(0), "", "", "", System.currentTimeMillis());
+      return new TransactionData(payloadList.get(1), payloadList.get(2), "", payloadList.get(4), payloadList.get(0), " ", " ", "", System.currentTimeMillis());
     }
     else{
       
