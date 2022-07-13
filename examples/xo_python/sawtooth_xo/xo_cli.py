@@ -85,12 +85,12 @@ def add_genesis_parser(subparsers, parent_parser):
         help='unique identifier for the new workflow')
         
     parser.add_argument(
-        '--parentWorkflowID',
+        'parentWorkflowID',
          type=str,
          help='parent workflowID')
 
     parser.add_argument(
-        '--parentTaskID',
+        'parentTaskID',
         type=str,
         help='parent workflow task ID')
         

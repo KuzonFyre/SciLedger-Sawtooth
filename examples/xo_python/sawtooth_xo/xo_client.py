@@ -67,7 +67,7 @@ class XoClient:
 
     def genesis(self, workflowID, parentWorkflowID, parentTaskID, wait=None, auth_user=None, auth_password=None):
         return self._send_xo_txn(
-            [workflowID,taskID,parentWorkflowID,parentTaskID],
+            [workflowID,"",parentWorkflowID,parentTaskID],
             "genesis",
             wait=wait,
             auth_user=auth_user,

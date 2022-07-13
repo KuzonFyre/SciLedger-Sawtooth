@@ -119,9 +119,9 @@ public class XoHandler implements TransactionHandler {
     //Extract the signer public key. This signer is the scientist.
     scientist = header.getSignerPublicKey();
 
-    if(transactionData.taskId.equals("")){
-      throw new InvalidTransactionException("Task ID required");
-    }
+    //if(transactionData.taskId.equals("")){
+      //throw new InvalidTransactionException("Task ID required");
+    //}
     if(transactionData.parentTaskId.equals("")){
       System.out.println(transactionData.taskId);
       throw new InvalidTransactionException("Parent task ID required");
@@ -343,12 +343,12 @@ public class XoHandler implements TransactionHandler {
     //Call display function and give scientist name
     display(String.format("Scientist %s created a workflow genesis block", abbreviate(scientist)));
     //Return new WorkflowData object with information about the new workflow
-    String[] designArray = new String[Integer.parseInt(transactionData.design)];
-    Arrays.fill(designArray, "-");
-    String designString = Arrays.toString(designArray);
+    //String[] designArray = new String[Integer.parseInt(transactionData.design)];
+    //Arrays.fill(designArray, "-");
+    //String designString = Arrays.toString(designArray);
     //Set the design array to have all values set to "-" which represents that the task has not been done ever
     return new WorkflowData(
-            transactionData.workflowId, transactionData.parentWorkflowId, transactionData.parentTaskId, designString);
+            transactionData.workflowId, transactionData.parentWorkflowId, transactionData.parentTaskId, " ");
   }
 
 
