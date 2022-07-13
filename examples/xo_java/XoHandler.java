@@ -158,14 +158,15 @@ public class XoHandler implements TransactionHandler {
     String address = makeTaskAddress(transactionData.workflowId,transactionData.taskId);
     // *** context.get() returns a list.
     // *** If no data has been stored yet at the given address, it will be empty.
-    System.out.println(address);
+
     String stateEntry = context.getState(
             Collections.singletonList(address)
     ).get(address).toStringUtf8();
-    
     WorkflowData stateData = getStateData(stateEntry, transactionData.workflowId);
+    
     //Call storeWorkflowData
     WorkflowData updatedWorkflowData = initiateAction(transactionData, stateData, scientist);
+    System.out.println("yo");
     storeWorkflowData(address, updatedWorkflowData, stateEntry, context);
   }
 
@@ -208,6 +209,7 @@ public class XoHandler implements TransactionHandler {
           throws InternalError, InvalidTransactionException {
     //?? If state entry has length zero, return a new WorkflowData object with all empty parameters. What is state entry?
     if (stateEntry.length() == 0) {
+      System.out.println("Hello there");
       return new WorkflowData("", "", "", "");
     } else {
       //Call getWorkflowCsv() with stateEntry and workflowId. Split the workflowCSV into an arraylist workflowList.
@@ -287,15 +289,18 @@ public class XoHandler implements TransactionHandler {
       //Reformat the new state entry from dataList
       stateEntry = StringUtils.join(dataList, "|");
     }
-
+    System.out.println("REached line 292");
     //Do some checks and if address size is too small, throw an exception
     ByteString csvByteString = ByteString.copyFromUtf8(stateEntry);
     Map.Entry<String, ByteString> entry = new AbstractMap.SimpleEntry<>(address, csvByteString);
     Collection<Map.Entry<String, ByteString>> addressValues = Collections.singletonList(entry);
+    System.out.println("Reached 297");
     Collection<String> addresses = context.setState(addressValues);
+    System.out.println(addresses);
     if (addresses.size() < 1) {
       throw new InternalError("State Error");
     }
+    
   }
 
   /**
@@ -304,6 +309,7 @@ public class XoHandler implements TransactionHandler {
   private WorkflowData initiateAction(TransactionData transactionData, WorkflowData workflowData, String scientist)
           throws InvalidTransactionException, InternalError {
     //Check transactionData action
+    System.out.println("yee");
     switch (transactionData.action) {
       //! Implement proper checks prior to function calls (see old xo)
       case "genesis":
@@ -355,14 +361,14 @@ public class XoHandler implements TransactionHandler {
 
     //get task state
     char[] designArray = workflowData.design.toCharArray();
-    char taskState = designArray[Integer.parseInt(transactionData.taskId)];
+    //char taskState = designArray[Integer.parseInt(transactionData.taskId)];
     //make sure task hasn't already been done
-    if (taskState == 'v'){
-      throw new InvalidTransactionException(String.format(
-              "Invalid action. Workflow task %s already complete", transactionData.taskId));
-    }
+    //if (taskState == 'v'){
+      //throw new InvalidTransactionException(String.format(
+        //      "Invalid action. Workflow task %s already complete", transactionData.taskId));
+    //}
     //Set task state to valid
-    designArray[Integer.parseInt(transactionData.taskId)] = 'v';
+    //designArray[Integer.parseInt(transactionData.taskId)] = 'v';
     String updatedDesign = Arrays.toString(designArray);
 
     //Create updated workflowData with the new state in the design

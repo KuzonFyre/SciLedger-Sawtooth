@@ -205,7 +205,7 @@ class XoClient:
             family_name="wf",
             family_version="1.0",
             inputs=[outaddress],
-            outputs=[inaddress],
+            outputs=[outaddress],
             dependencies=[],
             payload_sha512=_sha512(payload),
             batcher_public_key=self._signer.get_public_key().as_hex(),
