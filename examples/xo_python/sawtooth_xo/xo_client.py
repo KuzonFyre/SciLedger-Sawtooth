@@ -132,7 +132,7 @@ class XoClient:
             raise XoException(err) from err
 
     def _get_prefix(self):
-        return _sha512('xo'.encode('utf-8'))[0:6]
+        return _sha512('wf'.encode('utf-8'))[0:6]
 
     def _get_address(self, name):
         xo_prefix = self._get_prefix()
@@ -196,22 +196,22 @@ class XoClient:
         info.insert(0,action)
         payload = ",".join(info).encode()
         # Construct the address
-        address = self._get_address(str(info[0])+str(info[1]))
-        print(address)
-
+        inaddress = self._get_address(str(info[3])+str(info[4]))
+        outaddress = self._get_address(str(info[1])+str(info[2]))
+        print(inaddress)
+        print(outaddress)
         header = TransactionHeader(
             signer_public_key=self._signer.get_public_key().as_hex(),
-            family_name="xo",
+            family_name="wf",
             family_version="1.0",
-            inputs=[address],
-            outputs=[address],
+            inputs=[outaddress],
+            outputs=[inaddress],
             dependencies=[],
             payload_sha512=_sha512(payload),
             batcher_public_key=self._signer.get_public_key().as_hex(),
             nonce=hex(random.randint(0, 2**64))
         ).SerializeToString()
 
-        print(address)
 
         signature = self._signer.sign(header)
 

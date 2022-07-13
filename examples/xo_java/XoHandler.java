@@ -51,7 +51,7 @@ public class XoHandler implements TransactionHandler {
 
   @Override
   public String transactionFamilyName() {
-    return "xo";
+    return "wf";
   }
 
   @Override
@@ -155,12 +155,14 @@ public class XoHandler implements TransactionHandler {
     }
 
     //Otherwise make an address using the given taskID
-    String address = makeTaskAddress(transactionData.taskId);
+    String address = makeTaskAddress(transactionData.workflowId,transactionData.taskId);
     // *** context.get() returns a list.
     // *** If no data has been stored yet at the given address, it will be empty.
+    System.out.println(address);
     String stateEntry = context.getState(
             Collections.singletonList(address)
     ).get(address).toStringUtf8();
+    
     WorkflowData stateData = getStateData(stateEntry, transactionData.workflowId);
     //Call storeWorkflowData
     WorkflowData updatedWorkflowData = initiateAction(transactionData, stateData, scientist);
@@ -217,7 +219,7 @@ public class XoHandler implements TransactionHandler {
           workflowList.add("");
         }
         //Create and return a new WorkflowData object from the game list
-        return new WorkflowData(workflowList.get(0), workflowList.get(1), workflowList.get(2), workflowList.get(3));
+        return new WorkflowData(workflowList.get(0), workflowList.get(1), workflowList.get(2),workflowList.get(3));
         //?? If ever an error occurs, throw exception. What could cause this?
       } catch (Error e) {
         throw new InternalError("Failed to deserialize workflow data");
@@ -228,12 +230,12 @@ public class XoHandler implements TransactionHandler {
   /**
    * Helper function to generate workflow address.
    */
-  private String makeTaskAddress(String taskID) throws InternalError {
+  private String makeTaskAddress(String workflowId, String taskId) throws InternalError {
     //Hash the task name and return taskNameSpace concatenated with a substring of the hashed name
     //Unless error occurs, then throw exception
     //! do we need to change the hashing or remove it potentially
     try {
-      String hashedName = Utils.hash512(taskID.getBytes("UTF-8"));
+      String hashedName = Utils.hash512((workflowId + taskId).getBytes("UTF-8"));
       return taskNameSpace + hashedName.substring(0, 64);
     } catch (UnsupportedEncodingException e) {
       throw new InternalError("Internal Error: " + e.toString());
