@@ -196,7 +196,7 @@ class XoClient:
         info.insert(0,action)
         payload = ",".join(info).encode()
         # Construct the address
-        inaddress = self._get_address(str(info[3])+str(info[4]))
+        inaddress = self._get_address(str(info[1])+str(info[3]))
         outaddress = self._get_address(str(info[1])+str(info[2]))
         print(inaddress)
         print(outaddress)
@@ -206,7 +206,7 @@ class XoClient:
             family_version="1.0",
             inputs=[outaddress],
             outputs=[outaddress],
-            dependencies=[],
+            dependencies=[inaddress],
             payload_sha512=_sha512(payload),
             batcher_public_key=self._signer.get_public_key().as_hex(),
             nonce=hex(random.randint(0, 2**64))

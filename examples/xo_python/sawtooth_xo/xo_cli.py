@@ -367,7 +367,7 @@ def do_list(args):
         wf.split(',')
         for wfs in client.list(auth_user=None,
                                  auth_password=None)
-        for ws in games.decode().split('|')
+        for wf in wfs.decode().split('|')
     ]
 
     if wf_list is not None:
@@ -452,7 +452,7 @@ def do_regular(args):
     print("Response: {}".format(response))
 
 
-def do_delete(args):
+def do_invalidate(args):
     workflowID = args.workflowID
     taskID = args.taskID
     url = _get_url(args)
@@ -517,7 +517,7 @@ def main(prog_name=os.path.basename(sys.argv[0]), args=None):
     elif args.command == 'regular':
         do_regular(args)
     elif args.command == 'invalidate':
-        do_delete(args)
+        do_invalidate(args)
     else:
         raise XoException("invalid command: {}".format(args.command))
 
