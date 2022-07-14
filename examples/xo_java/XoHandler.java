@@ -155,7 +155,12 @@ public class XoHandler implements TransactionHandler {
     }
 
     //Otherwise make an address using the given taskID
-    String address = makeTaskAddress(transactionData.workflowId,transactionData.taskId);
+    String address;
+    if(transactionData.action.equals("regular")){
+        address = makeTaskAddress(transactionData.workflowId,transactionData.parentTaskId);
+    }else{
+        address = makeTaskAddress(transactionData.parentWorkflowId,transactionData.parentTaskId);
+    }
     // *** context.get() returns a list.
     // *** If no data has been stored yet at the given address, it will be empty.
 
@@ -232,12 +237,13 @@ public class XoHandler implements TransactionHandler {
   /**
    * Helper function to generate workflow address.
    */
-  private String makeTaskAddress(String workflowId, String taskId) throws InternalError {
+  private String makeTaskAddress(String parentWorkflowId, String parentTaskId) throws InternalError {
     //Hash the task name and return taskNameSpace concatenated with a substring of the hashed name
     //Unless error occurs, then throw exception
     //! do we need to change the hashing or remove it potentially
     try {
-      String hashedName = Utils.hash512((workflowId + taskId).getBytes("UTF-8"));
+      String hashedName = Utils.hash512((parentWorkflowId + parentTaskId).getBytes("UTF-8"));
+      System.out.println(parentWorkflowId + parentTaskId);
       return taskNameSpace + hashedName.substring(0, 64);
     } catch (UnsupportedEncodingException e) {
       throw new InternalError("Internal Error: " + e.toString());
