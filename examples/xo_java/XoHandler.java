@@ -171,7 +171,7 @@ public class XoHandler implements TransactionHandler {
     
     //Call storeWorkflowData
     WorkflowData updatedWorkflowData = initiateAction(transactionData, stateData, scientist);
-    System.out.println("yo");
+    System.out.println(address);
     storeWorkflowData(address, updatedWorkflowData, stateEntry, context);
   }
 

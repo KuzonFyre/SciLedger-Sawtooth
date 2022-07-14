@@ -58,7 +58,8 @@ public class randomizeGen {
     public static void main(String[] args) {
        String[] arr = {"gnome-terminal","ls"};
         try {
-            Process process = Runtime.getRuntime().exec(arr,null);
+            Process process = Runtime.getRuntime().exec("gnome-terminal");
+            
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
