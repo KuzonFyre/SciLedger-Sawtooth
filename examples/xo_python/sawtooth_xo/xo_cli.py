@@ -373,8 +373,8 @@ def do_list(args):
     if wf_list is not None:
         print(wf_list)
         for wf_data in wf_list:
-            workflowID, parentWorkflowID, parentTaskID = wf_data
-            print(fmt % (workflowID, parentWorkflowID, parentTaskID))
+            workflowID, taskID,parentWorkflowID, parentTaskID = wf_data
+            print(workflowID + parentWorkflowID + parentTaskID)
     else:
         raise XoException("Could not retrieve workflow listing.")
 

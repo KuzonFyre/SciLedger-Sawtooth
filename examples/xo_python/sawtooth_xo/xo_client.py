@@ -67,7 +67,7 @@ class XoClient:
 
     def genesis(self, workflowID, parentWorkflowID, parentTaskID, wait=None, auth_user=None, auth_password=None):
         return self._send_xo_txn(
-            [workflowID,"",parentWorkflowID,parentTaskID],
+            [workflowID,"t0",parentWorkflowID,parentTaskID],
             "genesis",
             wait=wait,
             auth_user=auth_user,
@@ -83,7 +83,7 @@ class XoClient:
 
     def regular(self, workflowID, taskID, parentTaskID, wait=None, auth_user=None, auth_password=None):
         return self._send_xo_txn(
-            [workflowID,taskID,"",parentTaskID],
+            [workflowID,taskID,workflowID,parentTaskID],
             "regular",
             wait=wait,
             auth_user=auth_user,
@@ -163,10 +163,8 @@ class XoClient:
 
         try:
             if data is not None:
-                print(data)
-                print(str(url) + str(headers))
                 result = requests.post(url, headers=headers, data=data)
-                print("hello World")
+                print("Hello World")
             else:
                 result = requests.get(url, headers=headers)
 
@@ -196,17 +194,19 @@ class XoClient:
         info.insert(0,action)
         payload = ",".join(info).encode()
         # Construct the address
-        inaddress = self._get_address(str(info[1])+str(info[3]))
+        inaddress = self._get_address(str(info[1])+str(info[4]))
         outaddress = self._get_address(str(info[1])+str(info[2]))
         print(inaddress)
+        print(str(info[1])+str(info[4]))
         print(outaddress)
+        print(str(info[1])+str(info[2]))
         header = TransactionHeader(
             signer_public_key=self._signer.get_public_key().as_hex(),
             family_name="wf",
             family_version="1.0",
-            inputs=[outaddress],
+            inputs=[inaddress,outaddress],
             outputs=[outaddress],
-            dependencies=[inaddress],
+            dependencies=[],
             payload_sha512=_sha512(payload),
             batcher_public_key=self._signer.get_public_key().as_hex(),
             nonce=hex(random.randint(0, 2**64))
