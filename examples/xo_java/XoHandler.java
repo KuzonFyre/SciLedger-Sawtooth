@@ -155,12 +155,7 @@ public class XoHandler implements TransactionHandler {
     }
 
     //Otherwise make an address using the given taskID
-    String address;
-    if(transactionData.action.equals("regular")){
-        address = makeTaskAddress(transactionData.workflowId,transactionData.parentTaskId);
-    }else{
-        address = makeTaskAddress(transactionData.parentWorkflowId,transactionData.parentTaskId);
-    }
+    String address = makeTaskAddress(transactionData.workflowId,transactionData.parentTaskId);
     // *** context.get() returns a list.
     // *** If no data has been stored yet at the given address, it will be empty.
 

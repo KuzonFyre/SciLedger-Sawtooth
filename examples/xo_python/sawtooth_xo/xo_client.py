@@ -67,7 +67,7 @@ class XoClient:
 
     def genesis(self, workflowID, parentWorkflowID, parentTaskID, wait=None, auth_user=None, auth_password=None):
         return self._send_xo_txn(
-            [workflowID,"t0",parentWorkflowID,parentTaskID],
+            [parentWorkflowID,"t0",workflowID,parentTaskID],
             "genesis",
             wait=wait,
             auth_user=auth_user,
@@ -192,6 +192,7 @@ class XoClient:
                      auth_password=None):
         # Serialization is just a delimited utf-8 encoded string
         info.insert(0,action)
+        print(info)
         payload = ",".join(info).encode()
         # Construct the address
         inaddress = self._get_address(str(info[1])+str(info[4]))
