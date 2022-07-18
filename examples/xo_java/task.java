@@ -1,7 +1,8 @@
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
-public class task {
+public class task implements Comparable<task>{
     private String workflowID;
     private String taskID;
     private boolean invalidated;
@@ -18,12 +19,44 @@ public class task {
     }
 
     public ArrayList<Integer> getIdxParent() {
+    	if (idxParent==null){
+    		ArrayList<Integer> list = new ArrayList<Integer>();
+    		list.add(-2);
+    		return list;
+    	}else{
+    	
         return idxParent;
+        }
+    }
+    
+    public int getAddedParentVal(){
+    	int add =0;
+        for(int i=0; i<this.idxParent.size(); i++){
+        	add += idxParent.get(i);
+        }
+        return add;
     }
 
     public void addIdxParent(int parent) {
         this.idxParent.add(parent);
     }
+
+    @Override
+    public int compareTo(task task){
+    	System.out.println("Compare: " + task.toString());
+    	System.out.println(this.toString());
+        if(Collections.max(task.getIdxParent()) < Collections.max(this.getIdxParent())){
+        System.out.println("1");
+        return 1;
+        }else if(Collections.max(task.getIdxParent()) > Collections.max(this.getIdxParent())){
+        System.out.println("-1");
+        return -1;
+    }else{
+    System.out.println("0");
+    return 0;
+    }
+    }
+
 
     @Override
     public String toString() {
