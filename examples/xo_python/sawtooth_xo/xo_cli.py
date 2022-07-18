@@ -181,9 +181,17 @@ def add_show_parser(subparsers, parent_parser):
 
     parser.add_argument(
         'workflowID',
-        type=str,
-        help='workflow ID')
+         type=str,
+         help='workflowID the task belongs to')
 
+    parser.add_argument(
+        'taskID',
+        type=str,
+        help='workflow task ID')
+    parser.add_argument(
+        'parentTaskID',
+        type=str,
+        help='parent workflow ID')
     parser.add_argument(
         '--url',
         type=str,
@@ -230,9 +238,10 @@ def add_regular_parser(subparsers, parent_parser):
         help='workflow task ID')
 
     parser.add_argument(
-        'parentTaskID',
-        type=str,
-        help='parent workflow task ID')
+    	'-pt',
+        '--parentTaskID',
+        nargs='+',default=[],
+        help='parent task ID\'s')
         
     parser.add_argument(
         '--url',
@@ -380,14 +389,17 @@ def do_list(args):
 
 
 def do_show(args):
-    name = args.workflowID
+    workflowID = args.workflowID
+    taskID = args.taskID
+    parentTaskID = args.parentTaskID
+    
 
     url = _get_url(args)
     auth_user, auth_password = _get_auth_info(args)
 
     client = XoClient(base_url=url, keyfile=None)
 
-    data = client.show(name, auth_user=auth_user, auth_password=auth_password)
+    data = client.show(workflowID, taskID,parentTaskID, auth_user=auth_user, auth_password=auth_password)
     
     
 

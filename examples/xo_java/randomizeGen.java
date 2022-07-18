@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 public class randomizeGen {
-    static int maxWorkflows =10;
+    static int maxWorkflows =1;
     static int maxWSize = 10;
     static double PERBRANCH = 0.3;
     static ArrayList<Integer> startPoint = new ArrayList<>(maxWorkflows);
@@ -62,7 +62,6 @@ public class randomizeGen {
     return 0;
     }
 });
-        
         return workflow;
 
     }
@@ -72,13 +71,21 @@ public class randomizeGen {
     public static void main(String[] args) {
         generate();
         System.out.println(workflows);
+        String allArgs = "";
+        for(int i=0; i<workflows.size(); i++){
+        	for(int j=0; j<workflows.get(i).size(); j++){
+        		allArgs += "wf regular " + workflows.get(i).get(j).toString() + ";";
+        	}
+        }
+        System.out.println(allArgs);
        String command2 = "docker exec -it sawtooth-shell-default bash";
         
         try {
         List<String> list = new ArrayList<String>();
         list.add("bash");
         list.add("-c");
-        list.add("wf regular w1 t1 t0; wf regular w1 t2 t1");
+        list.add(allArgs);
+        //list.add("wf regular w1 t1 t0; wf regular w1 t2 t1");
         //list.add("-it");
         //list.add("sawtooth-shell-default");
         //list.add("bash");

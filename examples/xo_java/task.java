@@ -60,6 +60,11 @@ public class task implements Comparable<task>{
 
     @Override
     public String toString() {
-        return this.workflowID+", " + this.taskID+", " + this.invalidated + ", " + this.idxParent+ "\n";
+    String str = this.workflowID + " " + this.taskID + " -pt ";
+    	for(int i=0; i<idxParent.size(); i++){
+    	str+= idxParent.get(i).toString() + " ";
+    	}
+    return str;
     }
+    
 }

@@ -107,12 +107,13 @@ class XoClient:
         except BaseException:
             return None
 
-    def show(self, name, auth_user=None, auth_password=None):
-        address = self._get_address(name)
-
+    def show(self, workflowID, taskID,parentTaskID, auth_user=None, auth_password=None):
+        address = self._get_address(workflowID + parentTaskID)
+        print("state/{}".format(address))
+        print(address)
         result = self._send_request(
             "state/{}".format(address),
-            name=name,
+            #name=name,
             auth_user=auth_user,
             auth_password=auth_password)
         try:
@@ -143,7 +144,6 @@ class XoClient:
                       suffix,
                       data=None,
                       content_type=None,
-                      name=None,
                       auth_user=None,
                       auth_password=None):
         if self._base_url.startswith("http://"):
@@ -169,7 +169,7 @@ class XoClient:
                 result = requests.get(url, headers=headers)
 
             if result.status_code == 404:
-                raise XoException("No such game: {}".format(name))
+                raise XoException("No such game")
 
             if not result.ok:
                 raise XoException("Error {}: {}".format(
