@@ -2,6 +2,8 @@ import java.io.IOException;
 import java.util.Random;
 import java.util.*;
 import java.io.*;
+import java.util.Arrays;
+import java.util.Collections;
 
 public class randomizeGen {
     static int maxWorkflows =10;
@@ -49,20 +51,22 @@ public class randomizeGen {
                 merge.addIdxParent(counter);
          }
         startPoint.add(counter);
+        Collections.sort(workflow, new Comparator<task>() {
+    @Override
+    public int compare(task first, task second) {
+        if(Collections.max(first.getIdxParent()) < Collections.max(second.getIdxParent())){
+        return -1;
+        }else if(Collections.max(first.getIdxParent()) > Collections.max(second.getIdxParent())){
+        return 1;
+    }
+    return 0;
+    }
+});
+        
         return workflow;
 
     }
-
-    private static String combineCommands(String[] commands){
-    String result = "";
-    for(String command: commands){
-        result = result + command + " && ";
-    }
-    if(result.length() > 0){
-        result = result.substring(0,result.length()-3); // We remove the last && here.
-    }
-    return result;
-}
+    
 
 
     public static void main(String[] args) {
@@ -71,12 +75,10 @@ public class randomizeGen {
        String command2 = "docker exec -it sawtooth-shell-default bash";
         
         try {
-        List<String> list2 = new ArrayList<String>();
-        list2.add("gnome-terminal");
         List<String> list = new ArrayList<String>();
         list.add("bash");
         list.add("-c");
-        list.add("wf ; ls");
+        list.add("wf regular w1 t1 t0; wf regular w1 t2 t1");
         //list.add("-it");
         //list.add("sawtooth-shell-default");
         //list.add("bash");
