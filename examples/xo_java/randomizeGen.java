@@ -53,20 +53,78 @@ public class randomizeGen {
 
     }
 
+    private static String combineCommands(String[] commands){
+    String result = "";
+    for(String command: commands){
+        result = result + command + " && ";
+    }
+    if(result.length() > 0){
+        result = result.substring(0,result.length()-3); // We remove the last && here.
+    }
+    return result;
+}
 
 
     public static void main(String[] args) {
-       String[] arr = {"gnome-terminal","ls"};
-        try {
-            Process process = Runtime.getRuntime().exec("gnome-terminal");
-            
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
         generate();
         System.out.println(workflows);
+       String command2 = "docker exec -it sawtooth-shell-default bash";
+        
+        try {
+        List<String> list2 = new ArrayList<String>();
+        list2.add("gnome-terminal");
+        List<String> list = new ArrayList<String>();
+        list.add("bash");
+        list.add("-c");
+        list.add("wf ; ls");
+        //list.add("-it");
+        //list.add("sawtooth-shell-default");
+        //list.add("bash");
+        //list.add("ls");
+        //list.add("ls");
+        
+        ProcessBuilder pb = new ProcessBuilder(list);
+        pb.inheritIO();
+        Process process = pb.start();
+        process.waitFor();
+        
+        //OutputStream out = process.getOutputStream();  
+        
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        
+                
 
-        //
+        
+        
+        
+        
+
+
+        //         List<String> list = new ArrayList<String>();
+        //list.add("gnome-terminal");
+ 
+        // create the process
+        //ProcessBuilder build = new ProcessBuilder(list);
+        
+        
+	//Process proc = Runtime.getRuntime().exec(command2);
+
+	//Process proc1 = Runtime.getRuntime().exec(command2);
+        // Read the output
+        //OutputStream out = proc.getOutputStream(); 
+        //byte[] dataBytes = "command\n".getBytes(); 
+	//out.write(dataBytes);  
+	//out.flush();
+	//BufferedReader reader1 =  
+          //    new BufferedReader(new InputStreamReader(proc.getInputStream()));
+        //String line = "";
+        //while((line = reader1.readLine()) != null) {
+          //  System.out.print(line + "\n");
+        //}
+
+        //proc.waitFor();  
 
     }
 
