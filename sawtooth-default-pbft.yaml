@@ -360,7 +360,6 @@ services:
           --peers tcp://validator-2:8800 \
           --peers tcp://validator-3:8800
       "
-
 # -------------=== pbft engines ===-------------
 
   pbft-0:

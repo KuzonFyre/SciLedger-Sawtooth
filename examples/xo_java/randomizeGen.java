@@ -70,15 +70,32 @@ public class randomizeGen {
 
     public static void main(String[] args) {
         generate();
-        System.out.println(workflows);
+        ProcessBuilder py;
+        for(int i=0; i<workflows.size(); i++){
+             for(int j =0; j< workflows.get(i).size(); j++){
+             try {
+                  py = new ProcessBuilder("python3.6","../xo_python/sawtooth_xo/merkle.py",workflows.get(i).get(j).hashString());
+                  Process p = py.inheritIO().start();
+                  p.waitFor();
+                  BufferedReader in = new BufferedReader(new InputStreamReader(
+                p.getInputStream()));
+                workflows.get(i).get(j).addMerkleHash(in.readLine());
+                System.out.println(workflows.get(i).get(j).getMerkleHash());
+                } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+             }
+        }
+         
+        //System.out.println(workflows);
         String allArgs = "";
         for(int i=0; i<workflows.size(); i++){
         	for(int j=0; j<workflows.get(i).size(); j++){
         		allArgs += "wf regular " + workflows.get(i).get(j).toString() + ";";
         	}
         }
-        System.out.println(allArgs);
-       String command2 = "docker exec -it sawtooth-shell-default bash";
+       //System.out.println(allArgs);
+       
         
         try {
         List<String> list = new ArrayList<String>();
@@ -86,54 +103,15 @@ public class randomizeGen {
         list.add("-c");
         list.add(allArgs);
         //list.add("wf regular w1 t1 t0; wf regular w1 t2 t1");
-        //list.add("-it");
-        //list.add("sawtooth-shell-default");
-        //list.add("bash");
-        //list.add("ls");
-        //list.add("ls");
         
         ProcessBuilder pb = new ProcessBuilder(list);
         pb.inheritIO();
         Process process = pb.start();
         process.waitFor();
         
-        //OutputStream out = process.getOutputStream();  
-        
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        
-                
-
-        
-        
-        
-        
-
-
-        //         List<String> list = new ArrayList<String>();
-        //list.add("gnome-terminal");
- 
-        // create the process
-        //ProcessBuilder build = new ProcessBuilder(list);
-        
-        
-	//Process proc = Runtime.getRuntime().exec(command2);
-
-	//Process proc1 = Runtime.getRuntime().exec(command2);
-        // Read the output
-        //OutputStream out = proc.getOutputStream(); 
-        //byte[] dataBytes = "command\n".getBytes(); 
-	//out.write(dataBytes);  
-	//out.flush();
-	//BufferedReader reader1 =  
-          //    new BufferedReader(new InputStreamReader(proc.getInputStream()));
-        //String line = "";
-        //while((line = reader1.readLine()) != null) {
-          //  System.out.print(line + "\n");
-        //}
-
-        //proc.waitFor();  
 
     }
 

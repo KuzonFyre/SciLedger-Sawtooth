@@ -2,11 +2,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
-public class task implements Comparable<task>{
+public class task{
     private String workflowID;
     private String taskID;
     private boolean invalidated;
     private ArrayList<Integer> idxParent;
+    private String hexStr;
     public task(String workflowID, String taskID, boolean invalidated, ArrayList<Integer> idxParent){
         this.workflowID = workflowID;
         this.taskID = taskID;
@@ -41,23 +42,18 @@ public class task implements Comparable<task>{
         this.idxParent.add(parent);
     }
 
-    @Override
-    public int compareTo(task task){
-    	System.out.println("Compare: " + task.toString());
-    	System.out.println(this.toString());
-        if(Collections.max(task.getIdxParent()) < Collections.max(this.getIdxParent())){
-        System.out.println("1");
-        return 1;
-        }else if(Collections.max(task.getIdxParent()) > Collections.max(this.getIdxParent())){
-        System.out.println("-1");
-        return -1;
-    }else{
-    System.out.println("0");
-    return 0;
-    }
-    }
-
-
+    public String getHexStr(){
+    	return this.hexStr;
+    	}
+public void addMerkleHash(String hexStr){
+	this.hexStr = hexStr;
+}
+	public String hashString(){
+	return this.workflowID + this.taskID +"";
+	}
+	public String getMerkleHash(){
+	return this.hexStr;
+}
     @Override
     public String toString() {
     String str = this.workflowID + " " + this.taskID + " -pt ";
